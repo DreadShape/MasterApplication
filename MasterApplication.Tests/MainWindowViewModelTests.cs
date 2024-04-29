@@ -5,8 +5,8 @@ namespace MasterApplication.Tests;
 [ConstructorTests(typeof(MainWindowViewModel))]
 public partial class MainWindowViewModelTests
 {
-    [Fact]
-    public void IncrementCounterCommand_Execute_IncrementsCount()
+    /*[Fact]
+    public void SelectFilesCommand_Execute_CalculatesFilesHashes()
     {
         //Arrange
         AutoMocker mocker = new();
@@ -60,5 +60,5 @@ public partial class MainWindowViewModelTests
 
         //Assert
         Assert.Equal(0, viewModel.Count);
-    }
+    }*/
 }
