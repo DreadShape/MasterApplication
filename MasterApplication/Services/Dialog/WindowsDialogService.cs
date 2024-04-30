@@ -52,7 +52,6 @@ namespace MasterApplication.Services.Dialog
             {
                 Title = "Select folder...",
                 Filter = "Text Files (*.txt)|*.txt",
-                CheckFileExists = true
             };
 
             if (saveFileDialog.ShowDialog() == true)

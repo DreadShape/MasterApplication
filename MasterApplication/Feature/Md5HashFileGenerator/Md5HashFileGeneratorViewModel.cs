@@ -77,12 +77,30 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// </summary>
     /// <param name="path">Where to save the file with all the hashes</param>
     [RelayCommand(CanExecute = nameof(CanSaveToFile))]
-    private void OnSaveCalculatedHashesToFile(string path)
+    private void OnSaveCalculatedHashesToFile()
     {
-        string test = _dialogService.ShowOpenFolderDialog();
+        if (!Files.Any())
+            throw new ArgumentNullException(nameof(Files));
 
-        if (string.IsNullOrEmpty(test))
-            throw new ArgumentNullException(nameof(path));
+        string fileSavePath = _dialogService.ShowSaveFileDialog();
+
+        if (string.IsNullOrEmpty(fileSavePath))
+            return;
+
+        if (File.Exists(fileSavePath))
+            File.Delete(fileSavePath);
+
+        // Create a StreamWriter to write to the file
+        using (StreamWriter writer = new(fileSavePath))
+        {
+            foreach (Md5HashFile file in Files)
+            {
+                // Write the text to the file
+                writer.WriteLine($"Nombre: {file.Name}");
+                writer.WriteLine($"MD5: {file.Hash}");
+                writer.WriteLine();
+            }
+        }
     }
 
     #endregion
