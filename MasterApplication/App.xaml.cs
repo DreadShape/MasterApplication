@@ -2,7 +2,7 @@
 
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Services.Dialog;
-using MasterApplication.Services.Md5Hash;
+using MasterApplication.Services.Feature.Md5Hash;
 
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.Configuration;
@@ -65,8 +65,8 @@ public partial class App : Application
         .ConfigureServices((hostContext, services) =>
         {
             //Services
-            services.AddSingleton<IOpenFileDialogService, WindowsOpenFileDialogService>();
-            services.AddSingleton<IMd5FileHashService, Md5FileHashService>();
+            services.AddSingleton<IDialogService, WindowsDialogService>();
+            services.AddSingleton<IMd5HashFileGeneratorService, Md5HashFileGeneratorService>();
 
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainWindowViewModel>();

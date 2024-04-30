@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
-using MasterApplication.Services.Md5Hash;
+using MasterApplication.Services.Feature.Md5Hash;
 
 using Microsoft.Extensions.Logging;
 
@@ -22,8 +22,8 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     #region PrivateFields
 
     private readonly ILogger _logger;
-    private readonly IOpenFileDialogService _openFileDialogService;
-    private readonly IMd5FileHashService _md5FileHashService;
+    private readonly IDialogService _dialogService;
+    private readonly IMd5HashFileGeneratorService _md5HashFileGeneratorService;
 
     #endregion
 
@@ -33,17 +33,15 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// Creates an instance of a <see cref="Md5HashFileGeneratorViewModel"/>.
     /// </summary>
     /// <param name="logger"><see cref="ILogger"/> to be able to los information, warnings and errors.</param>
-    /// <param name="openFileDialogService"><see cref="IOpenFileDialogService"/> to open dialog and let the user select files.</param>
-    /// <param name="md5FileHashService"><see cref="IMd5FileHashService"/> to calculate the hashes of files.</param>
+    /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
+    /// <param name="md5HashFileGeneratorService"><see cref="IMd5HashFileGeneratorService"/> to calculate the MD5 hashes of files.</param>
     /// <param name="soporteAbcContextFactory"><see cref="IDbContextFactory<SoporteAbcContext>"/> factory to be able to create a context to connect and manage the database.</param>
-    public Md5HashFileGeneratorViewModel(ILogger<Md5HashFileGeneratorViewModel> logger, IOpenFileDialogService openFileDialogService,
-        IMd5FileHashService md5FileHashService)
+    public Md5HashFileGeneratorViewModel(ILogger<Md5HashFileGeneratorViewModel> logger, IDialogService dialogService, IMd5HashFileGeneratorService md5HashFileGeneratorService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _openFileDialogService = openFileDialogService ?? throw new ArgumentNullException(nameof(openFileDialogService));
-        _md5FileHashService = md5FileHashService ?? throw new ArgumentNullException(nameof(md5FileHashService));
-
-        Files = new NotifyCanExecuteChangedObservableCollection<Md5HashFile>(() => NotifyCanExecuteChanged(SaveToFileCommand));
+        _dialogService = dialogService;
+        _md5HashFileGeneratorService = md5HashFileGeneratorService ?? throw new ArgumentNullException(nameof(md5HashFileGeneratorService));
+        Files = new NotifyCanExecuteChangedObservableCollection<Md5HashFile>(() => NotifyCanExecuteChanged(SaveCalculatedHashesToFileCommand));
     }
 
     #endregion
@@ -54,19 +52,19 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// Selects multiple files to add it to the <see cref="Files"/> collection.
     /// </summary>
     [RelayCommand]
-    private void OnSelectFiles()
+    private void OnSelectFilesAndCalculateHashes()
     {
-        string[] files = _openFileDialogService.ShowDialog();
-        if (files.Length > 0)
+        string[] selectedFiles = _dialogService.ShowOpenFileDialog();
+        if (selectedFiles.Length > 0)
         {
             Files.Clear();
 
-            foreach (string file in files)
+            foreach (string file in selectedFiles)
             {
                 Md5HashFile hashFile = new()
                 {
                     Name = file.Split(Path.DirectorySeparatorChar).Last(),
-                    Hash = _md5FileHashService.CalculateMd5Hash(file)
+                    Hash = _md5HashFileGeneratorService.CalculateMd5Hash(file)
                 };
 
                 Files.Add(hashFile);
@@ -79,9 +77,12 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// </summary>
     /// <param name="path">Where to save the file with all the hashes</param>
     [RelayCommand(CanExecute = nameof(CanSaveToFile))]
-    private void OnSaveToFile(string path)
+    private void OnSaveCalculatedHashesToFile(string path)
     {
-        SaveToFileCommand.NotifyCanExecuteChanged();
+        string test = _dialogService.ShowOpenFolderDialog();
+
+        if (string.IsNullOrEmpty(test))
+            throw new ArgumentNullException(nameof(path));
     }
 
     #endregion
@@ -104,7 +105,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
 
     #region PrivateMethods
 
-
+    
 
     #endregion
 

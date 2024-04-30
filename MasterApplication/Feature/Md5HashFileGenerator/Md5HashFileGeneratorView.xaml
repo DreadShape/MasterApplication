@@ -29,14 +29,14 @@
       <Button Grid.Row="0"
               Grid.Column="0"
               Margin="5,0,5,10"
-              Command="{Binding SelectFilesCommand}"
+              Command="{Binding SelectFilesAndCalculateHashesCommand}"
               Content="Select Files" />
       
       <!-- SaveToFileButton -->
       <Button Grid.Row="0"
               Grid.Column="1"
               Margin="5,0,0,10"
-              Command="{Binding SaveToFileCommand}"
+              Command="{Binding SaveCalculatedHashesToFileCommand}"
               Content="Save To File" />
 
       <!-- UnderlineSeparator -->
