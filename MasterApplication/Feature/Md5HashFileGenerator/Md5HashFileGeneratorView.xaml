@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="MasterApplication.Feature.Md5HashFileGenerator.Md5HashFileGeneratorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MasterApplication.Feature.Md5HashFileGenerator"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=local:Md5HashFileGeneratorViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
+  <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="2" />
+        <RowDefinition />
+      </Grid.RowDefinitions>
+
+      <!-- Buttons -->
+      <!-- SelectFilesButton -->
+      <Button Grid.Row="0"
+              Grid.Column="0"
+              Margin="5,0,5,10"
+              Command="{Binding SelectFilesAndCalculateHashesCommand}"
+              Content="Select Files" />
+
+      <!-- SaveToFileButton -->
+      <Button Grid.Row="0"
+              Grid.Column="1"
+              Margin="5,0,0,10"
+              Command="{Binding SaveCalculatedHashesToFileCommand}"
+              Content="Save To File" />
+
+      <!-- UnderlineSeparator -->
+      <Canvas Grid.Row="1"
+              Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Background="{StaticResource PrimaryLightBackgroundColor}" />
+
+      <!-- HashFiles -->
+      <DataGrid Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Margin="0,10,0,0"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                CanUserDeleteRows="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding Files}"
+                SelectionMode="Single"
+                CurrentCellChanged="DataGrid_CurrentCellChanged"
+                Visibility="{Binding Files.Count, Converter={StaticResource IntToVisibilityConverter}}">
+        
+        <DataGrid.CellStyle>
+          <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+            <Setter Property="BorderThickness" Value="0" />
+            <!-- Adjust padding as needed -->
+            <!-- Add other setters for additional properties you want to customize -->
+          </Style>
+        </DataGrid.CellStyle>
+        
+        <DataGrid.Columns>
+          
+          <!-- Name Column -->
+          <DataGridTextColumn Width="Auto"
+                              Binding="{Binding Name}"
+                              Header="Name" />
+
+          <!-- Hash Column -->
+          <DataGridTextColumn Width="*"
+                              Binding="{Binding Hash}"
+                              Header="Hash" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <materialDesign:Snackbar Grid.Row="2"
+                               Grid.ColumnSpan="3"
+                               MessageQueue="{Binding SnackbarMessageQueue}" />
+    </Grid>
+  </materialDesign:Card>
+</UserControl>
