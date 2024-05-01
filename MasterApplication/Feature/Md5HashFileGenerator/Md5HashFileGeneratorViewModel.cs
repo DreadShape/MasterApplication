@@ -1,6 +1,4 @@
 ﻿using System.IO;
-using System.Reflection.Metadata;
-using System.Windows;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
