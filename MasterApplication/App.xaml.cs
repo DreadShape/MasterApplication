@@ -86,7 +86,7 @@ public partial class App : Application
             services.AddTransient<ISnackbarMessageQueue>(provider =>
             {
                 Dispatcher dispatcher = provider.GetRequiredService<Dispatcher>();
-                return new SnackbarMessageQueue(TimeSpan.FromSeconds(3.0), dispatcher);
+                return new SnackbarMessageQueue(TimeSpan.FromSeconds(1.5), dispatcher);
             });
         });
 }

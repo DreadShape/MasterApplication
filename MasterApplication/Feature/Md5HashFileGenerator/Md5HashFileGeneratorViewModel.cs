@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Reflection.Metadata;
+using System.Windows;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,6 +8,8 @@ using CommunityToolkit.Mvvm.Input;
 using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
+
+using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +19,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
 {
     #region Properties
 
+    public ISnackbarMessageQueue SnackbarMessageQueue { get; }
     public NotifyCanExecuteChangedObservableCollection<Md5HashFile> Files { get; }
 
     #endregion
@@ -35,12 +40,16 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// <param name="logger"><see cref="ILogger"/> to be able to los information, warnings and errors.</param>
     /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
     /// <param name="md5HashFileGeneratorService"><see cref="IMd5HashFileGeneratorService"/> to calculate the MD5 hashes of files.</param>
+    /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
     /// <param name="soporteAbcContextFactory"><see cref="IDbContextFactory<SoporteAbcContext>"/> factory to be able to create a context to connect and manage the database.</param>
-    public Md5HashFileGeneratorViewModel(ILogger<Md5HashFileGeneratorViewModel> logger, IDialogService dialogService, IMd5HashFileGeneratorService md5HashFileGeneratorService)
+    public Md5HashFileGeneratorViewModel(ILogger<Md5HashFileGeneratorViewModel> logger, IDialogService dialogService,
+        IMd5HashFileGeneratorService md5HashFileGeneratorService, ISnackbarMessageQueue snackbarMessageQueue)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dialogService = dialogService;
         _md5HashFileGeneratorService = md5HashFileGeneratorService ?? throw new ArgumentNullException(nameof(md5HashFileGeneratorService));
+
+        SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
         Files = new NotifyCanExecuteChangedObservableCollection<Md5HashFile>(() => NotifyCanExecuteChanged(SaveCalculatedHashesToFileCommand));
     }
 
