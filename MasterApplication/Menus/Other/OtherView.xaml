@@ -33,7 +33,7 @@
                        TextWrapping="Wrap" />
           </StackPanel>
         </TabItem.Header>
-        <Md5Hash:Md5HashFileGeneratorView />
+        <Md5Hash:Md5HashFileGeneratorView x:Name="Feature_Md5HashFileGenerator" />
       </TabItem>
 
     </TabControl>

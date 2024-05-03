@@ -112,7 +112,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
 
     #endregion
 
-    #region CommandsValidations
+    #region CommandValidations
 
     /// <summary>
     /// Enables or disables the "Save to file" button on the UI based on if <see cref="Files"/> is empty or not.
@@ -140,7 +140,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// Custom implementation of <see cref="NotifyCanExecuteChangedObservableCollection{T}"/> event to be able to raise <see cref="INotifyPropertyChangedAttribute"/> passing it whatever <see cref="RelayCommand"/> you need to raised the event.
     /// </summary>
     /// <param name="command"><see cref="RelayCommand"/> to have <see cref="NotifyCanExecuteChangedForAttribute"/> raised</param>
-    private void NotifyCanExecuteChanged(IRelayCommand command) => command.NotifyCanExecuteChanged();
+    private static void NotifyCanExecuteChanged(IRelayCommand command) => command.NotifyCanExecuteChanged();
 
     #endregion
 }
