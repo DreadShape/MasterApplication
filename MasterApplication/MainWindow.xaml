@@ -1,13 +1,12 @@
 ﻿<Window x:Class="MasterApplication.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:Md5="clr-namespace:MasterApplication.Feature.Md5HashFileGenerator"
         xmlns:OtherMenu="clr-namespace:MasterApplication.Menus.Other"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:MasterApplication"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        Title="Demo App"
+        Title="Master Application"
         Width="1280"
         Height="800"
         Style="{StaticResource MaterialDesignWindow}"
@@ -15,27 +14,27 @@
   <Grid>
     <!-- Main Menu -->
     <TabControl materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
-            Background="{StaticResource PrimaryDarkBackgroundColor}"
-            Style="{StaticResource MaterialDesignNavigationRailTabControl}">
+                Background="{StaticResource PrimaryDarkBackgroundColor}"
+                Style="{StaticResource MaterialDesignNavigationRailTabControl}">
 
       <!-- Others -->
       <TabItem Width="120"
-           Height="100"
-           Padding="10,20,10,20">
+               Height="100"
+               Padding="10,20,10,20">
         <TabItem.Header>
           <StackPanel>
             <materialDesign:PackIcon Width="32"
-                                 Height="32"
-                                 Margin="0,0,0,5"
-                                 HorizontalAlignment="Center"
-                                 Kind="Pound" />
+                                     Height="32"
+                                     Margin="0,0,0,5"
+                                     HorizontalAlignment="Center"
+                                     Kind="Pound" />
             <TextBlock HorizontalAlignment="Center"
-                   Text="OTHER"
-                   TextAlignment="Center"
-                   TextWrapping="Wrap" />
+                       Text="OTHER"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </TabItem.Header>
-        <Md5:Md5HashFileGeneratorView x:Name="Md5View"></Md5:Md5HashFileGeneratorView>
+        <OtherMenu:OtherView x:Name="Menu_OtherView" />
       </TabItem>
 
     </TabControl>
