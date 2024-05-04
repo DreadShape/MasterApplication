@@ -1,8 +1,8 @@
 ﻿<Application x:Class="MasterApplication.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MasterApplication"
              xmlns:Converters="clr-namespace:MasterApplication.Converters"
+             xmlns:local="clr-namespace:MasterApplication"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
   <Application.Resources>
     <ResourceDictionary>
@@ -15,16 +15,15 @@
                                  SecondaryColor="#00d4d4" />-->
 
         <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
-        
+
         <!-- CustomColors -->
         <ResourceDictionary Source="Styles/ColorStyles.xaml" />
-        
+
       </ResourceDictionary.MergedDictionaries>
 
       <!-- Converters -->
       <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-      <Converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"></Converters:IntToVisibilityConverter>
-      
+      <Converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
     </ResourceDictionary>
   </Application.Resources>
 </Application>

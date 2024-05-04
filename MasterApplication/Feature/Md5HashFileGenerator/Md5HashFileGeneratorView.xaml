@@ -58,17 +58,15 @@
                 SelectionMode="Single"
                 CurrentCellChanged="DataGrid_CurrentCellChanged"
                 Visibility="{Binding Files.Count, Converter={StaticResource IntToVisibilityConverter}}">
-        
+
         <DataGrid.CellStyle>
           <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
             <Setter Property="BorderThickness" Value="0" />
-            <!-- Adjust padding as needed -->
-            <!-- Add other setters for additional properties you want to customize -->
           </Style>
         </DataGrid.CellStyle>
-        
+
         <DataGrid.Columns>
-          
+
           <!-- Name Column -->
           <DataGridTextColumn Width="Auto"
                               Binding="{Binding Name}"

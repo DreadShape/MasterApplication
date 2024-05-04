@@ -1,10 +1,16 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.IO;
+using System.Windows;
+using System.Windows.Threading;
+
+using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Feature.Md5HashFileGenerator;
+using MasterApplication.Menus.Other;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
 
 using MaterialDesignThemes.Wpf;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,10 +18,6 @@ using Microsoft.Extensions.Logging;
 
 using Serilog;
 using Serilog.Events;
-
-using System.IO;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace MasterApplication;
 
@@ -64,25 +66,32 @@ public partial class App : Application
             => configurationBuilder.AddUserSecrets(typeof(App).Assembly))
         .ConfigureServices((hostContext, services) =>
         {
+            //ViewModelLocator
+            services.AddSingleton<ViewModelLocator>();
+
             //Services
             services.AddSingleton<IDialogService, WindowsDialogService>();
             services.AddSingleton<IMd5HashFileGeneratorService, Md5HashFileGeneratorService>();
 
-            services.AddSingleton<MainWindow>();
-            services.AddSingleton<MainWindowViewModel>();
+            //Menus
+            services.AddSingleton<OtherViewModel>();
+
+            //Features
             services.AddSingleton<Md5HashFileGeneratorViewModel>();
-
-            services.AddSingleton<WeakReferenceMessenger>();
-            services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
-
-            services.AddSingleton(_ => Current.Dispatcher);
-
+            
+            //Logging
             services.AddLogging(loggingBuilder =>
             {
                 loggingBuilder.ClearProviders();
                 loggingBuilder.AddSerilog();
             });
 
+            //Other
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<MainWindowViewModel>();
+            services.AddSingleton<WeakReferenceMessenger>();
+            services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
+            services.AddSingleton(_ => Current.Dispatcher);
             services.AddTransient<ISnackbarMessageQueue>(provider =>
             {
                 Dispatcher dispatcher = provider.GetRequiredService<Dispatcher>();

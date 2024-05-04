@@ -3,6 +3,10 @@ using System.Collections.Specialized;
 
 namespace MasterApplication
 {
+    /// <summary>
+    /// Custom <see cref="ObservableCollection{T}"/> that takes in a delegate to notify that the collection has changed.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class NotifyCanExecuteChangedObservableCollection<T> : ObservableCollection<T>
     {
         private readonly Action _notifyCanExecuteChanged;

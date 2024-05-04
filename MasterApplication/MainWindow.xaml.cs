@@ -10,12 +10,19 @@ namespace MasterApplication;
 /// </summary>
 public partial class MainWindow
 {
-    public MainWindow(MainWindowViewModel viewModel, Md5HashFileGeneratorViewModel md5ViewModel)
+    /// <summary>
+    /// Main container that it's job is to link all the view models to their respective views
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <param name="otherViewModel"></param>
+    /// <param name="md5HashFileGeneratorViewModel"></param>
+    public MainWindow(MainWindowViewModel viewModel, OtherViewModel otherViewModel, Md5HashFileGeneratorViewModel md5HashFileGeneratorViewModel)
     {
         DataContext = viewModel;
         InitializeComponent();
+        Menu_OtherView.DataContext = otherViewModel;
+        Menu_OtherView.Feature_Md5HashFileGenerator.DataContext = md5HashFileGeneratorViewModel;
 
-        Md5View.DataContext = md5ViewModel;
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }
 
