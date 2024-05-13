@@ -52,7 +52,7 @@
                                    Height="40"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
-                                   Foreground="{Binding IconForeground, Converter={StaticResource HexToBrushConverter}}"
+                                   Foreground="{Binding IconAndTextForeground, Converter={StaticResource HexToBrushConverter}}"
                                    Kind="{Binding Icon}"
                                    Visibility="{Binding IsIconVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Grid>
@@ -72,13 +72,14 @@
           <Button Grid.Column="1"
                   Height="40"
                   Margin="5,0,0,0"
+                  FontSize="20"
                   Command="{Binding SaveLocationCommand}"
                   Content="..."
                   Style="{StaticResource MaterialDesignRaisedButton}" />
         </Grid>
       </StackPanel>
 
-      <!-- Video Title -->
+      <!-- Audio Title -->
       <TextBlock Grid.Row="1"
                  Grid.ColumnSpan="4"
                  Margin="20,0,20,10"
@@ -86,7 +87,7 @@
                  VerticalAlignment="Center"
                  FontSize="14"
                  FontWeight="SemiBold"
-                 Text="{Binding VideoTitle}" />
+                 Text="{Binding AudioTitle}" />
 
       <!-- Progress Bar -->
       <Grid Grid.Row="2"
@@ -110,6 +111,7 @@
                      HorizontalAlignment="Left"
                      VerticalAlignment="Center"
                      FontSize="14"
+                     Foreground="{Binding IconAndTextForeground}"
                      Text="{Binding Status}" />
         </StackPanel>
 
@@ -137,6 +139,7 @@
               Margin="10,0,20,0"
               Command="{Binding CancelCommand}"
               Content="Cancel"
+              IsEnabled="{Binding IsCancelButtonEnabled}"
               Style="{StaticResource BiggerDarkButtons}" />
 
     </Grid>

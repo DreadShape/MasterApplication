@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using MasterApplication.Services.Feature.Md5Hash;
-using MasterApplication.Tests.Services;
+﻿using MasterApplication.Services.Feature.Md5Hash;
 
 namespace MasterApplication.Tests.Feature.Md5Hash;
 
@@ -13,7 +6,7 @@ namespace MasterApplication.Tests.Feature.Md5Hash;
 public partial class Md5HashFileGeneratorViewModelTests
 {
     [Fact]
-    public void SaveCalculatedH_Execute_CalculatesMd5HashOfFile()
+    public void SaveCalculatedHashesToFile_Execute_CalculatesMd5HashOfFile()
     {
         //Create temporary file
         string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;

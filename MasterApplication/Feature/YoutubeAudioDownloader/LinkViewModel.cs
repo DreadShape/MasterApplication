@@ -9,13 +9,17 @@ using MasterApplication.Services.Dialog;
 
 using Microsoft.Extensions.Logging;
 
+using YoutubeExplode;
+using YoutubeExplode.Converter;
+using YoutubeExplode.Videos;
+
 namespace MasterApplication.Feature.YoutubeAudioDownloader
 {
     public partial class LinkViewModel : ObservableObject
     {
         #region Properties
 
-        private string _link;
+        private string _link = null!;
         public string Link
         {
             get => _link;
@@ -44,7 +48,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private string _icon = "Check";
 
         [ObservableProperty]
-        private string _iconForeground;
+        private string _iconAndTextForeground = null!;
 
         [ObservableProperty]
         private bool _isIconVisible = false;
@@ -53,7 +57,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private string _status = "Waiting for link...";
 
         [ObservableProperty]
-        private string _videoTitle;
+        private string _audioTitle = null!;
 
         [ObservableProperty]
         private bool _isProgressBarVisible = false;
@@ -62,7 +66,10 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private int _progressBarValue;
 
         [ObservableProperty]
-        private bool _isDownloadButtonEnabled;
+        private bool _isDownloadButtonEnabled = false;
+
+        [ObservableProperty]
+        private bool _isCancelButtonEnabled = false;
 
         #endregion
 
@@ -70,6 +77,10 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
 
         private readonly ILogger _logger;
         private readonly IDialogService _dialogService;
+        private readonly YoutubeClient _youtubeClient;
+        private readonly IProgress<double> _progressBar;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private Video _youtubeAudio = null!;
 
         #endregion
 
@@ -84,35 +95,15 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         {
             _logger = logger;
             _dialogService = dialogService;
-            _propertyNameToErrors = new();
+            _youtubeClient = new();
+            _progressBar = new Progress<double>(x => ProgressBarValue = (int)(x * 100));
+            _cancellationTokenSource = new();
         }
 
         #endregion
 
         #region CommandValidations
 
-
-        #endregion
-
-        #region ErrorValidators
-
-        private readonly Dictionary<string, IList<string>> _propertyNameToErrors;
-
-        public bool HasErrors => _propertyNameToErrors.Any();
-
-        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-
-        /// <summary>
-        /// Gets all the errors of a property.
-        /// </summary>
-        /// <param name="propertyName">Name of the property containing errors</param>
-        /// <returns>All the errors of that property</returns>
-        public IEnumerable GetErrors(string? propertyName)
-        {
-            return string.IsNullOrEmpty(propertyName)
-                ? new List<string>()
-                : (IEnumerable)_propertyNameToErrors.GetValueOrDefault(propertyName, new List<string>());
-        }
 
         #endregion
 
@@ -132,48 +123,55 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         /// <summary>
         /// Downloads the audio to the selected folder.
         /// </summary>
-        /// <returns>'True' if the audio was downloaded correctly, 'False' if it didn't</returns>
+        /// <returns>'True' if the audio was downloaded correctly, 'False' if it didn't.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the '<see cref="Link"/>' or '<see cref="SaveLocation"/>' are empty.</exception>
         [RelayCommand]
         private async Task OnDownload()
         {
             if (string.IsNullOrEmpty(Link))
-                return;
+                throw new ArgumentNullException(nameof(Link));
 
             if (string.IsNullOrEmpty(SaveLocation) || !Directory.Exists(SaveLocation))
-                return;
+                throw new ArgumentNullException(nameof(SaveLocation));
 
-            /*if (string.IsNullOrEmpty(_youtubeVideo?.Id))
-                return;
+            if (string.IsNullOrEmpty(_youtubeAudio?.Id))
+            {
+                _logger.LogError("No audio Id found to download.");
+                throw new ArgumentNullException("No audio Id found to download.");
+            }
 
             string fullPathAndName = string.Empty;
             try
             {
-                string? videoName = NormalizeFileName(_youtubeVideo.Title);
-                fullPathAndName = Path.Combine(SaveLocation, $"{videoName}.mp3");
+                string audioName = NormalizeFileName(_youtubeAudio.Title);
+                fullPathAndName = Path.Combine(SaveLocation, $"{audioName}.mp3");
                 IsProgressBarVisible = true;
 
                 if (File.Exists(fullPathAndName))
                 {
-                    IsProgressBarVisible = false;
+                    ResetProgressBar();
                     return;
                 }
 
                 Status = "Downloading...";
-                await _youtubeClient.Videos.DownloadAsync(_youtubeVideo.Id, fullPathAndName, _progressBar, _cancellationTokenSource.Token);
+                _logger.LogInformation("Started downloading of '{audioTitle}' at '{saveLocation}'", AudioTitle, SaveLocation);
+                await _youtubeClient.Videos.DownloadAsync(_youtubeAudio.Id, fullPathAndName, _progressBar, _cancellationTokenSource.Token);
+
                 Status = "Waiting for link...";
-                VideoTitle = string.Empty;
+                _logger.LogInformation("'{audioTitle}' downloaded correctly.", AudioTitle);
+                AudioTitle = string.Empty;
                 Link = string.Empty;
-                IsProgressBarVisible = false;
+                ResetProgressBar();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //TODO: Create logger to log other exceptions
+                _logger.LogError("Error trying to download audio '{audioTitle}'. Error: '{exception}'", AudioTitle, ex);
 
                 if (File.Exists(fullPathAndName))
                     File.Delete(fullPathAndName);
 
-                IsProgressBarVisible = false;
-            }*/
+                ResetProgressBar();
+            }
         }
 
         /// <summary>
@@ -182,9 +180,10 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         [RelayCommand]
         private void OnCancel()
         {
-            /*_cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Cancel();
+            ResetProgressBar();
             Status = "Ready to download";
-            IsProgressBarVisible = false;*/
+            _logger.LogInformation("Canceled downloading of '{audioTitle}'", AudioTitle);
         }
 
         #endregion
@@ -194,33 +193,77 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         /// <summary>
         /// Verifies if the link is valid or not.
         /// </summary>
-        /// <returns>'True' if the link is valid, 'False' if it isn't</returns>
+        /// <returns>'True' if the link is valid, 'False' if it isn't.</returns>
         private async Task<bool> VerifyLink()
         {
-            return false;
-            /*IsDownloadButtonEnabled = false;
+            IsDownloadButtonEnabled = false;
             IsIconVisible = false;
+            IconAndTextForeground = "#ffffff";
+
             if (string.IsNullOrEmpty(Link))
             {
-                VideoTitle = string.Empty;
+                AudioTitle = string.Empty;
                 Status = "Waiting for link...";
-                return;
+                return false;
             }
 
             try
             {
                 Status = "Analyzing link...";
-                _youtubeVideo = await _youtubeClient.Videos.GetAsync(Link ?? string.Empty);
+                _logger.LogInformation("Analyzing audio link '{link}'.", Link);
+                _youtubeAudio = await _youtubeClient.Videos.GetAsync(Link ?? string.Empty);
                 IsDownloadButtonEnabled = true;
-                VideoTitle = _youtubeVideo.Title;
-                ShowLinkIcon("Check", "#00de00");
+                AudioTitle = _youtubeAudio.Title;
+                ShowLinkIcon("Check", "#7fee7f");
                 Status = "Ready to download";
+                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Error trying to get the audio track. Error: '{exception}'", ex);
                 Status = "Invalid link";
-                ShowLinkIcon("CloseBoxOutline", "#e60000");
-            }*/
+                ShowLinkIcon("CloseBoxOutline", "#f27f7f");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Shows the <see cref="LinkView"/> page's icon with a specific kind and color.
+        /// </summary>
+        /// <param name="kind">Type of icon.</param>
+        /// <param name="hexColor">Color of the icon.</param>
+        private void ShowLinkIcon(string kind, string hexColor)
+        {
+            Icon = kind;
+            IsIconVisible = true;
+            IconAndTextForeground = hexColor;
+        }
+
+        /// <summary>
+        /// Resets the <see cref="IProgress{T}"/> bar.
+        /// </summary>
+        private void ResetProgressBar()
+        {
+            IsProgressBarVisible = false;
+            ProgressBarValue = 0;
+        }
+
+        /// <summary>
+        /// Replaces all the invalid file name characters to '-'.
+        /// </summary>
+        /// <param name="input">Text to normalize.</param>
+        /// <returns>The normalized text.</returns>
+        private static string NormalizeFileName(string input)
+        {
+            // Replace invalid file characters with underscores
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            foreach (char invalidChar in invalidChars)
+                input = input.Replace(invalidChar, '-');
+
+            // Remove leading and trailing whitespaces
+            input = input.Trim();
+
+            return input;
         }
 
         #endregion

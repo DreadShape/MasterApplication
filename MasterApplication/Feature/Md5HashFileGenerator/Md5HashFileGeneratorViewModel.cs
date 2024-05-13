@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Security.Policy;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -68,10 +69,14 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
 
             foreach (string file in selectedFiles)
             {
+                string fileName = file.Split(Path.DirectorySeparatorChar).Last();
+                string hash = _md5HashFileGeneratorService.CalculateMd5Hash(file);
+                _logger.LogInformation("Calculated hash for item '{item}': {hash}.", fileName, hash);
+
                 Md5HashFile hashFile = new()
                 {
-                    Name = file.Split(Path.DirectorySeparatorChar).Last(),
-                    Hash = _md5HashFileGeneratorService.CalculateMd5Hash(file)
+                    Name = fileName,
+                    Hash = hash
                 };
 
                 Files.Add(hashFile);
@@ -82,7 +87,8 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// <summary>
     /// Saves the generated hashes to a file text on the specified path.
     /// </summary>
-    /// <param name="path">Where to save the file with all the hashes</param>
+    /// <param name="path">Where to save the file with all the hashes.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the '<see cref="Files"/>' collection is empty or if you didn't give the file a name when exiting the dialog.</exception>
     [RelayCommand(CanExecute = nameof(CanSaveToFile))]
     private void OnSaveCalculatedHashesToFile()
     {
@@ -92,10 +98,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
         string fileSavePath = _dialogService.ShowSaveFileDialog();
 
         if (string.IsNullOrEmpty(fileSavePath))
-            return;
-
-        if (File.Exists(fileSavePath))
-            File.Delete(fileSavePath);
+            throw new ArgumentNullException(nameof(fileSavePath));
 
         // Create a StreamWriter to write to the file
         using (StreamWriter writer = new(fileSavePath))
@@ -108,6 +111,8 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
                 writer.WriteLine();
             }
         }
+
+        _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at '{savedLocation}'.", Files.Count, fileSavePath);
     }
 
     #endregion
@@ -117,7 +122,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// <summary>
     /// Enables or disables the "Save to file" button on the UI based on if <see cref="Files"/> is empty or not.
     /// </summary>
-    /// <returns>'True' if <see cref="Files"/> has any items inside, 'False' if it doesn't</returns>
+    /// <returns>'True' if <see cref="Files"/> has any items inside, 'False' if it doesn't.</returns>
     private bool CanSaveToFile() => Files.Any();
 
     #endregion
@@ -139,7 +144,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
     /// <summary>
     /// Custom implementation of <see cref="NotifyCanExecuteChangedObservableCollection{T}"/> event to be able to raise <see cref="INotifyPropertyChangedAttribute"/> passing it whatever <see cref="RelayCommand"/> you need to raised the event.
     /// </summary>
-    /// <param name="command"><see cref="RelayCommand"/> to have <see cref="NotifyCanExecuteChangedForAttribute"/> raised</param>
+    /// <param name="command"><see cref="RelayCommand"/> to have <see cref="NotifyCanExecuteChangedForAttribute"/> raised.</param>
     private static void NotifyCanExecuteChanged(IRelayCommand command) => command.NotifyCanExecuteChanged();
 
     #endregion

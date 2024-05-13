@@ -38,5 +38,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
+    <PackageVersion Include="YoutubeExplode" Version="6.3.14" />
+    <PackageVersion Include="YoutubeExplode.Converter" Version="6.3.14" />
   </ItemGroup>
 </Project>
