@@ -1,0 +1,144 @@
+﻿<UserControl x:Class="MasterApplication.Feature.YoutubeAudioDownloader.LinkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MasterApplication.Feature.YoutubeAudioDownloader"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             d:DataContext="{d:DesignInstance Type=local:LinkViewModel,
+                                 IsDesignTimeCreatable=False}"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
+  <materialDesign:Card Grid.Column="0"
+                       Margin="10"
+                       VerticalAlignment="Top">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="auto" />
+        <RowDefinition Height="auto" />
+        <RowDefinition Height="80" />
+      </Grid.RowDefinitions>
+
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+
+      <!-- Inputs -->
+      <StackPanel Grid.Row="0"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="4"
+                  Margin="20"
+                  Orientation="Vertical">
+
+        <!-- Link -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="50" />
+          </Grid.ColumnDefinitions>
+
+          <TextBox Grid.Column="0"
+                   materialDesign:HintAssist.Hint="Link"
+                   Style="{StaticResource BiggerFontTextBox}"
+                   Margin="0,0,0,10"
+                   Text="{Binding Link, UpdateSourceTrigger=PropertyChanged}" />
+
+          <materialDesign:PackIcon Grid.Column="1"
+                                   Width="40"
+                                   Height="40"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="{Binding IconForeground, Converter={StaticResource HexToBrushConverter}}"
+                                   Kind="{Binding Icon}"
+                                   Visibility="{Binding IsIconVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </Grid>
+
+        <!-- Save Location -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="50" />
+          </Grid.ColumnDefinitions>
+
+          <TextBox Grid.Column="0"
+                   materialDesign:HintAssist.Hint="Save Location"
+                   Style="{StaticResource BiggerFontTextBox}"
+                   Text="{Binding SaveLocation, UpdateSourceTrigger=PropertyChanged}" />
+
+          <Button Grid.Column="1"
+                  Height="40"
+                  Margin="5,0,0,0"
+                  Command="{Binding SaveLocationCommand}"
+                  Content="..."
+                  Style="{StaticResource MaterialDesignRaisedButton}" />
+        </Grid>
+      </StackPanel>
+
+      <!-- Video Title -->
+      <TextBlock Grid.Row="1"
+                 Grid.ColumnSpan="4"
+                 Margin="20,0,20,10"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="14"
+                 FontWeight="SemiBold"
+                 Text="{Binding VideoTitle}" />
+
+      <!-- Progress Bar -->
+      <Grid Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="2">
+
+        <Grid.RowDefinitions>
+          <RowDefinition />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+          <TextBlock Margin="20,0,0,10"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Text="Status:" />
+
+          <TextBlock Margin="5,0,0,10"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     FontSize="14"
+                     Text="{Binding Status}" />
+        </StackPanel>
+
+        <ProgressBar Grid.Row="1"
+                     Height="10"
+                     Margin="20,0,0,0"
+                     VerticalAlignment="Top"
+                     materialDesign:TransitionAssist.DisableTransitions="True"
+                     Visibility="{Binding IsProgressBarVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                     Value="{Binding ProgressBarValue}" />
+      </Grid>
+
+      <!-- Buttons -->
+      <Button Grid.Row="2"
+              Grid.Column="2"
+              Margin="20,0,10,0"
+              Command="{Binding DownloadCommand}"
+              Content="Download"
+              IsDefault="True"
+              IsEnabled="{Binding IsDownloadButtonEnabled}"
+              Style="{StaticResource BiggerLightButtons}" />
+
+      <Button Grid.Row="2"
+              Grid.Column="3"
+              Margin="10,0,20,0"
+              Command="{Binding CancelCommand}"
+              Content="Cancel"
+              Style="{StaticResource BiggerDarkButtons}" />
+
+    </Grid>
+  </materialDesign:Card>
+</UserControl>

@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Feature.Md5HashFileGenerator;
+using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
@@ -66,9 +67,6 @@ public partial class App : Application
             => configurationBuilder.AddUserSecrets(typeof(App).Assembly))
         .ConfigureServices((hostContext, services) =>
         {
-            //ViewModelLocator
-            services.AddSingleton<ViewModelLocator>();
-
             //Services
             services.AddSingleton<IDialogService, WindowsDialogService>();
             services.AddSingleton<IMd5HashFileGeneratorService, Md5HashFileGeneratorService>();
@@ -78,6 +76,8 @@ public partial class App : Application
 
             //Features
             services.AddSingleton<Md5HashFileGeneratorViewModel>();
+            services.AddSingleton<YoutubeAudioDownloaderViewModel>();
+            services.AddSingleton<LinkViewModel>();
             
             //Logging
             services.AddLogging(loggingBuilder =>
