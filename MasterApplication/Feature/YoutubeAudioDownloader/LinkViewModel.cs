@@ -29,7 +29,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
                 {
                     Task.Run(async () =>
                     {
-                        if (await VerifyLink())
+                        if (await VerifyLinkAsync())
                         {
                             IsDownloadButtonEnabled = true;
                             return;
@@ -48,7 +48,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private string _icon = "Check";
 
         [ObservableProperty]
-        private string _iconAndTextForeground = null!;
+        private string _iconAndTextForeground = "#ffffff";
 
         [ObservableProperty]
         private bool _isIconVisible = false;
@@ -87,7 +87,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         #region Constructor
 
         /// <summary>
-        /// Creates and instanceo of an <see cref="LinkViewModel"/>.
+        /// Creates and instance of an <see cref="LinkViewModel"/>.
         /// </summary>
         /// <param name="logger"><see cref="Logger"/> to be able to log information, warnings and errors.</param>
         /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
@@ -145,15 +145,17 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             {
                 string audioName = NormalizeFileName(_youtubeAudio.Title);
                 fullPathAndName = Path.Combine(SaveLocation, $"{audioName}.mp3");
-                IsProgressBarVisible = true;
-
+                
                 if (File.Exists(fullPathAndName))
                 {
                     ResetProgressBar();
+                    Status = "Audio already exists, download canceled.";
                     return;
                 }
 
                 Status = "Downloading...";
+                IsProgressBarVisible = true;
+                IsCancelButtonEnabled = true;
                 _logger.LogInformation("Started downloading of '{audioTitle}' at '{saveLocation}'", AudioTitle, SaveLocation);
                 await _youtubeClient.Videos.DownloadAsync(_youtubeAudio.Id, fullPathAndName, _progressBar, _cancellationTokenSource.Token);
 
@@ -161,15 +163,20 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
                 _logger.LogInformation("'{audioTitle}' downloaded correctly.", AudioTitle);
                 AudioTitle = string.Empty;
                 Link = string.Empty;
+                IsCancelButtonEnabled = false;
                 ResetProgressBar();
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error trying to download audio '{audioTitle}'. Error: '{exception}'", AudioTitle, ex);
+                if (ex is OperationCanceledException)
+                    _logger.LogInformation("Audio '{audioTitle}' download canceled.", AudioTitle);
+                else
+                    _logger.LogError("Error trying to download audio '{audioTitle}'. Error: '{exception}'", AudioTitle, ex);
 
                 if (File.Exists(fullPathAndName))
                     File.Delete(fullPathAndName);
 
+                IsCancelButtonEnabled = false;
                 ResetProgressBar();
             }
         }
@@ -188,13 +195,13 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
 
         #endregion
 
-        #region Methods
+        #region PublicMethods
 
         /// <summary>
         /// Verifies if the link is valid or not.
         /// </summary>
         /// <returns>'True' if the link is valid, 'False' if it isn't.</returns>
-        private async Task<bool> VerifyLink()
+        public async Task<bool> VerifyLinkAsync()
         {
             IsDownloadButtonEnabled = false;
             IsIconVisible = false;
@@ -226,6 +233,10 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
                 return false;
             }
         }
+
+        #endregion
+
+        #region PrivateMethods
 
         /// <summary>
         /// Shows the <see cref="LinkView"/> page's icon with a specific kind and color.
