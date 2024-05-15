@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.ComponentModel;
-using System.IO;
+﻿using System.IO;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using MasterApplication.Helpers;
 using MasterApplication.Services.Dialog;
 
 using Microsoft.Extensions.Logging;
@@ -89,7 +88,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         /// <summary>
         /// Creates and instance of an <see cref="LinkViewModel"/>.
         /// </summary>
-        /// <param name="logger"><see cref="Logger"/> to be able to log information, warnings and errors.</param>
+        /// <param name="logger"><see cref="ILogger"/> to be able to log information, warnings and errors.</param>
         /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
         public LinkViewModel(ILogger<LinkViewModel> logger, IDialogService dialogService)
         {
@@ -99,11 +98,6 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             _progressBar = new Progress<double>(x => ProgressBarValue = (int)(x * 100));
             _cancellationTokenSource = new();
         }
-
-        #endregion
-
-        #region CommandValidations
-
 
         #endregion
 
@@ -143,7 +137,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             string fullPathAndName = string.Empty;
             try
             {
-                string audioName = NormalizeFileName(_youtubeAudio.Title);
+                string audioName = Utils.NormalizeFileName(_youtubeAudio.Title);
                 fullPathAndName = Path.Combine(SaveLocation, $"{audioName}.mp3");
                 
                 if (File.Exists(fullPathAndName))
@@ -192,6 +186,11 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             Status = "Ready to download";
             _logger.LogInformation("Canceled downloading of '{audioTitle}'", AudioTitle);
         }
+
+        #endregion
+
+        #region CommandValidations
+
 
         #endregion
 
@@ -257,24 +256,6 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         {
             IsProgressBarVisible = false;
             ProgressBarValue = 0;
-        }
-
-        /// <summary>
-        /// Replaces all the invalid file name characters to '-'.
-        /// </summary>
-        /// <param name="input">Text to normalize.</param>
-        /// <returns>The normalized text.</returns>
-        private static string NormalizeFileName(string input)
-        {
-            // Replace invalid file characters with underscores
-            char[] invalidChars = Path.GetInvalidFileNameChars();
-            foreach (char invalidChar in invalidChars)
-                input = input.Replace(invalidChar, '-');
-
-            // Remove leading and trailing whitespaces
-            input = input.Trim();
-
-            return input;
         }
 
         #endregion
