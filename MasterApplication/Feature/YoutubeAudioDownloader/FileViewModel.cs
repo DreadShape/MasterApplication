@@ -1,10 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.IO;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
-using MasterApplication.UserControls;
-
-using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.Logging;
 
@@ -27,10 +27,16 @@ public partial class FileViewModel : ObservableObject
     private string _status = "Waiting for file...";
 
     [ObservableProperty]
-    private string _statusTextForeground = "#ffffff";
+    private string _statusTextForeground = HexColors.Default;
 
     [ObservableProperty]
     private string _audioTitle = null!;
+
+    [ObservableProperty]
+    private string _errorText = null!;
+
+    [ObservableProperty]
+    private bool _isErrorTextVisible = false;
 
     [ObservableProperty]
     private bool _isDownloadButtonEnabled = false;
@@ -58,10 +64,9 @@ public partial class FileViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly YoutubeClient _youtubeClient;
     private readonly IProgress<double> _progressBar;
-    private CancellationTokenSource _cancellationTokenSource;
+    private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly IList<string> _fileLinks;
     private readonly IList<string> _errorLinks;
-    private readonly string _dialogIdentifier;
 
     #endregion
 
@@ -72,7 +77,7 @@ public partial class FileViewModel : ObservableObject
     /// </summary>
     /// <param name="logger"><see cref="ILogger"/> to be able to log information, warnings and errors.</param>
     /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
-    public FileViewModel(ILogger<LinkViewModel> logger, IDialogService dialogService)
+    public FileViewModel(ILogger<FileViewModel> logger, IDialogService dialogService)
     {
         _logger = logger;
         _dialogService = dialogService;
@@ -81,7 +86,6 @@ public partial class FileViewModel : ObservableObject
         _cancellationTokenSource = new();
         _fileLinks = new List<string>();
         _errorLinks = new List<string>();
-        _dialogIdentifier = "AudioDialog";
     }
 
     #endregion
@@ -94,16 +98,38 @@ public partial class FileViewModel : ObservableObject
     [RelayCommand]
     private async Task OnFileLocation()
     {
+        IsErrorTextVisible = false;
         string[] selectedFilePath = _dialogService.ShowOpenFileDialog("Text files...|*.txt", false);
-        if (selectedFilePath != null && selectedFilePath.Length > 0)
-            FileLocation = selectedFilePath.First();
-
-        /*if (fileLocationDialog.ShowDialog() == DialogResult.OK)
+        if (selectedFilePath == null || selectedFilePath.Length <= 0)
         {
-            FileLocation = fileLocationDialog.FileName;
-            LoadingDialog loadingDialog = new("Analyzing links, please wait...");
-            await DialogHost.Show(loadingDialog, _dialogIdentifier, OnCheckFileOpenAsync, OnCheckClosingOpenAsync);
-        }*/
+            AudioTitle = string.Empty;
+            StatusTextForeground = HexColors.Default;
+            Status = "Waiting for file...";
+            return;
+        }
+
+        FileLocation = selectedFilePath.First();
+        if (!await AreLinksInFileValid())
+        {
+            StatusTextForeground = HexColors.Error;
+            Status = "All links inside the file are invalid.";
+            IsDownloadButtonEnabled = false;
+            return;
+        }
+
+        // We only save a file with the invalid links if there are some valid ones as well, if all the links are invalid we don't need to create a file.
+        if (_errorLinks.Any() && _fileLinks.Any())
+        {
+            ErrorText = $"'{_errorLinks.Count}' invalid {(_errorLinks.Count > 1 ? "links" : "link")} in the selected file. Check 'invalidLinks.txt' file created in the save location.";
+            IsErrorTextVisible = true;
+            string invalidLinksFilePath = Path.Combine(SaveLocation, "invalidLinks.txt");
+            _logger.LogInformation("All the invalid links have been saved in the file '{file}'", invalidLinksFilePath);
+            File.WriteAllLines(invalidLinksFilePath, _errorLinks);
+        }
+
+        StatusTextForeground = HexColors.Success;
+        Status = "Ready to download.";
+        IsDownloadButtonEnabled = true;
     }
 
     /// <summary>
@@ -117,18 +143,23 @@ public partial class FileViewModel : ObservableObject
             SaveLocation = selectedFolderPath;
     }
 
+    /// <summary>
+    /// Downloads the valid audio links found in the selected file.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">Thrown when the '<see cref="FileLocation"/>' or '<see cref="SaveLocation"/>' are empty.</exception>
     [RelayCommand]
     private async Task OnDownload()
     {
         IsProgressBarVisible = true;
-        ErrorDialog errorDialog;
         OverallProgressBarValue = 0;
+        IndividualProgressBarValue = 0;
 
         if (string.IsNullOrEmpty(FileLocation))
-            return;
+            throw new ArgumentNullException(nameof(FileLocation));
 
         if (string.IsNullOrEmpty(SaveLocation))
-            return;
+            throw new ArgumentNullException(nameof(SaveLocation));
 
         /*foreach (string link in _fileLinks)
         {
@@ -200,80 +231,57 @@ public partial class FileViewModel : ObservableObject
     #region PrivateMethods
 
     /// <summary>
-    /// Checks to see if the file has valid youtube links or not
+    /// Analyzes the file to see if it contains valid links.
     /// </summary>
-    /// <param name="sender">Dialog that sent the event.</param>
-    /// <param name="eventArgs"></param>
-    /// <returns></returns>
-    private async void OnCheckFileOpenAsync(object sender, DialogOpenedEventArgs eventArgs)
+    private async Task<bool> AreLinksInFileValid()
     {
         try
         {
-            _cancellationTokenSource = new();
             _fileLinks.Clear();
             _errorLinks.Clear();
-            IsDownloadButtonEnabled = false;
             YoutubeClient youtubeClient = new();
 
-            /*if (string.IsNullOrEmpty(FileLocation))
-            {
-                VideoTitle = string.Empty;
-                Status = "Waiting for file...";
-                return;
-            }
-
             string[] fileLines = File.ReadAllLines(FileLocation);
-            Status = "Analyzing file links...";
-            foreach (string line in fileLines)
+            
+            for (int i = 0; i < fileLines.Length; i++)
             {
-                string link = new(line.Split(',').FirstOrDefault());
+                StatusTextForeground = HexColors.Default;
+                Status = $"Analyzing links, please wait... {i}/{fileLines.Length}";
+                _logger.LogInformation("Analyzing audio link '{link}'.", fileLines[i]);
+
+                string link = new(fileLines[i].Split(',').FirstOrDefault());
                 try
                 {
                     Video? youtubeVideo = await youtubeClient.Videos.GetAsync(link, _cancellationTokenSource.Token);
                     _fileLinks.Add(link);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError("Error trying to get the audio track. Error: '{exception}'", ex);
                     _errorLinks.Add(link);
                 }
             }
 
             if (!_fileLinks.Any())
-            {
-                Status = "All links inside the file are invalid.";
-                IsDownloadButtonEnabled = false;
-                eventArgs.Session.Close(false);
-                return;
-            }
+                return false;
 
             TotalFileLinks = _fileLinks.Count;
-            Status = "Ready to download";
-            IsDownloadButtonEnabled = true;
-            eventArgs.Session.Close(false);*/
+            return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            IsDownloadButtonEnabled = false;
+            _logger.LogError("Error trying to analyze the file '{fileLocation}'. Error: '{exception}'", FileLocation, ex);
+            return false;
         }
     }
 
     /// <summary>
-    /// Checks to see if the file has valid youtube links or not
-    /// </summary>
-    /// <param name="sender">Dialog that sent the event.</param>
-    /// <param name="eventArgs"></param>
-    /// <returns></returns>
-    private void OnCheckClosingOpenAsync(object sender, DialogClosingEventArgs eventArgs)
-    {
-        _cancellationTokenSource?.Cancel();
-    }
-
-    /// <summary>
-    /// Resets the <see cref="IProgress{T}"/> bar.
+    /// Resets the overall <see cref="IProgress{T}"/> bar.
     /// </summary>
     private void ResetProgressBar()
     {
         IsProgressBarVisible = false;
+        OverallProgressBarValue = 0;
         IndividualProgressBarValue = 0;
     }
 

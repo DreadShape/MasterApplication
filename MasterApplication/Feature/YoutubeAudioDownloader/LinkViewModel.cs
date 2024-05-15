@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using MasterApplication.Helpers;
+using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
 
 using Microsoft.Extensions.Logging;
@@ -47,7 +48,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private string _icon = "Check";
 
         [ObservableProperty]
-        private string _iconAndTextForeground = "#ffffff";
+        private string _iconAndTextForeground = HexColors.Default;
 
         [ObservableProperty]
         private bool _isIconVisible = false;
@@ -204,7 +205,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         {
             IsDownloadButtonEnabled = false;
             IsIconVisible = false;
-            IconAndTextForeground = "#ffffff";
+            IconAndTextForeground = HexColors.Default;
 
             if (string.IsNullOrEmpty(Link))
             {

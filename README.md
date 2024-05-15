@@ -2,6 +2,10 @@
 
 This is an application that I put together to make my daily life and work easier.
 
+## Requirements
+
+You need to download [ffmpeg.exe](https://ffmpeg.org/download.html) to be able to convert the audios and place it in the executable path of the application where "MasterApplication.exe" is located.
+
 ## Template Creation
 
 The template for this application was created from Kevin Bost. I've learned a lot about WPF programming from his youtube videos, I highly recommend watching him.
