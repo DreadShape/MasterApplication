@@ -168,7 +168,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             }
             catch (Exception ex)
             {
-                if (ex is OperationCanceledException)
+                if (_cancellationTokenSource.IsCancellationRequested)
                     _logger.LogInformation("Audio '{audioTitle}' download canceled.", AudioTitle);
                 else
                     _logger.LogError("Error trying to download audio '{audioTitle}'. Error: '{exception}'", AudioTitle, ex);
