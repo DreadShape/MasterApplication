@@ -78,6 +78,7 @@ public partial class App : Application
             services.AddSingleton<Md5HashFileGeneratorViewModel>();
             services.AddSingleton<YoutubeAudioDownloaderViewModel>();
             services.AddSingleton<LinkViewModel>();
+            services.AddSingleton<FileViewModel>();
             
             //Logging
             services.AddLogging(loggingBuilder =>

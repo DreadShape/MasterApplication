@@ -23,7 +23,8 @@ public partial class MainWindow
         OtherViewModel otherViewModel, 
         Md5HashFileGeneratorViewModel md5HashFileGeneratorViewModel, 
         YoutubeAudioDownloaderViewModel youtubeAudioDownloaderViewModel,
-        LinkViewModel linkViewModel)
+        LinkViewModel linkViewModel,
+        FileViewModel fileViewModel)
     {
         DataContext = viewModel;
         InitializeComponent();
@@ -31,6 +32,7 @@ public partial class MainWindow
         Menu_OtherView.Feature_Md5HashFileGenerator.DataContext = md5HashFileGeneratorViewModel;
         Menu_OtherView.Feature_YoutubeAudioDownloader.DataContext = youtubeAudioDownloaderViewModel;
         Menu_OtherView.Feature_YoutubeAudioDownloader.LinkView.DataContext = linkViewModel;
+        Menu_OtherView.Feature_YoutubeAudioDownloader.FileView.DataContext = fileViewModel;
 
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }

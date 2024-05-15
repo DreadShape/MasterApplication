@@ -61,6 +61,7 @@
                             Text="File" />
             </StackPanel>
           </TabItem.Header>
+          <local:FileView x:Name="FileView"></local:FileView>
         </TabItem>
 
       </TabControl>
