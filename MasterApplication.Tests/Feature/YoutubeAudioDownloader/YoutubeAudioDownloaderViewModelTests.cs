@@ -54,7 +54,7 @@ public partial class YoutubeAudioDownloaderViewModelTests
                          .Returns(selectedFilePath);
 
         FileViewModel sut = new(mockLogger.Object, mockDialogService.Object);
-        sut.FileLocationCommand.Execute(null);
+        await sut.FileLocationCommand.ExecuteAsync(null);
         sut.SaveLocation = executingDirectory;
 
         // Act

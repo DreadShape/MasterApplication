@@ -79,7 +79,7 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         private readonly IDialogService _dialogService;
         private readonly YoutubeClient _youtubeClient;
         private readonly IProgress<double> _progressBar;
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource _cancellationTokenSource;
         private Video _youtubeAudio = null!;
 
         #endregion
@@ -123,6 +123,8 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         [RelayCommand]
         private async Task OnDownload()
         {
+            _cancellationTokenSource = new();
+
             if (string.IsNullOrEmpty(Link))
                 throw new ArgumentNullException(nameof(Link));
 
@@ -151,11 +153,11 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
                 Status = "Downloading...";
                 IsProgressBarVisible = true;
                 IsCancelButtonEnabled = true;
-                _logger.LogInformation("Started downloading of '{audioTitle}' at '{saveLocation}'", AudioTitle, SaveLocation);
+                _logger.LogInformation("Started downloading of {audioTitle} at {saveLocation}.", AudioTitle, SaveLocation);
                 await _youtubeClient.Videos.DownloadAsync(_youtubeAudio.Id, fullPathAndName, _progressBar, _cancellationTokenSource.Token);
 
                 Status = "Waiting for link...";
-                _logger.LogInformation("'{audioTitle}' downloaded correctly.", AudioTitle);
+                _logger.LogInformation("{audioTitle} downloaded correctly.", AudioTitle);
                 AudioTitle = string.Empty;
                 Link = string.Empty;
                 IsCancelButtonEnabled = false;
@@ -164,9 +166,9 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             catch (Exception ex)
             {
                 if (_cancellationTokenSource.IsCancellationRequested)
-                    _logger.LogInformation("Audio '{audioTitle}' download canceled.", AudioTitle);
+                    _logger.LogInformation("Audio {audioTitle} download canceled.", AudioTitle);
                 else
-                    _logger.LogError("Error trying to download audio '{audioTitle}'. Error: '{exception}'", AudioTitle, ex);
+                    _logger.LogError("Error trying to download audio {audioTitle}. Error: {exception}.", AudioTitle, ex);
 
                 if (File.Exists(fullPathAndName))
                     File.Delete(fullPathAndName);
@@ -184,8 +186,8 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
         {
             _cancellationTokenSource?.Cancel();
             ResetProgressBar();
-            Status = "Ready to download";
-            _logger.LogInformation("Canceled downloading of '{audioTitle}'", AudioTitle);
+            Status = "Ready to download...";
+            _logger.LogInformation("Canceled downloading of {audioTitle}.", AudioTitle);
         }
 
         #endregion
@@ -217,17 +219,17 @@ namespace MasterApplication.Feature.YoutubeAudioDownloader
             try
             {
                 Status = "Analyzing link...";
-                _logger.LogInformation("Analyzing audio link '{link}'.", Link);
+                _logger.LogInformation("Analyzing audio link {link}.", Link);
                 _youtubeAudio = await _youtubeClient.Videos.GetAsync(Link ?? string.Empty);
                 IsDownloadButtonEnabled = true;
                 AudioTitle = _youtubeAudio.Title;
                 ShowLinkIcon("Check", "#7fee7f");
-                Status = "Ready to download";
+                Status = "Ready to download...";
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error trying to get the audio track. Error: '{exception}'", ex);
+                _logger.LogError("Error trying to get the audio track. Error: {exception}.", ex);
                 Status = "Invalid link";
                 ShowLinkIcon("CloseBoxOutline", "#f27f7f");
                 return false;

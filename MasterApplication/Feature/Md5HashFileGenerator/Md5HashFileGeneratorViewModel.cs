@@ -71,7 +71,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
             {
                 string fileName = file.Split(Path.DirectorySeparatorChar).Last();
                 string hash = _md5HashFileGeneratorService.CalculateMd5Hash(file);
-                _logger.LogInformation("Calculated hash for item '{item}': {hash}.", fileName, hash);
+                _logger.LogInformation("Calculated hash for item {item}: {hash}.", fileName, hash);
 
                 Md5HashFile hashFile = new()
                 {
@@ -112,7 +112,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
             }
         }
 
-        _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at '{savedLocation}'.", Files.Count, fileSavePath);
+        _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at {savedLocation}.", Files.Count, fileSavePath);
     }
 
     #endregion
