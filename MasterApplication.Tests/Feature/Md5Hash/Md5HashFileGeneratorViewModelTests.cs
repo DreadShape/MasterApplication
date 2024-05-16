@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using MasterApplication.Services.Feature.Md5Hash;
-using MasterApplication.Tests.Services;
+﻿using MasterApplication.Services.Feature.Md5Hash;
 
 namespace MasterApplication.Tests.Feature.Md5Hash;
 
@@ -13,9 +6,9 @@ namespace MasterApplication.Tests.Feature.Md5Hash;
 public partial class Md5HashFileGeneratorViewModelTests
 {
     [Fact]
-    public void SaveCalculatedH_Execute_CalculatesMd5HashOfFile()
+    public void SaveCalculatedHashesToFile_Execute_CalculatesMd5HashOfFile()
     {
-        //Create temporary file
+        // Create temporary file
         string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
         string filePath = Path.Combine(executingDirectory, "test.txt");
 
@@ -26,7 +19,7 @@ public partial class Md5HashFileGeneratorViewModelTests
             writer.WriteLine("hash test");
         }
 
-        //Arrange
+        // Arrange
         Md5HashFileGeneratorService sut = new();
 
         // Act
@@ -35,7 +28,7 @@ public partial class Md5HashFileGeneratorViewModelTests
         // Assert
         Assert.Equal("fdaa3c0c77e0eee73a783f5ef8b8a4fc", hashResult);
 
-        //Delete the temporary file
+        // Delete the temporary file
         if (File.Exists(filePath))
             File.Delete(filePath);
     }

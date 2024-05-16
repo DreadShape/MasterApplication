@@ -1,35 +1,25 @@
-# WPF app template
-This template creates a full WPF application, along with unit tests.
+# WPF Master Application
 
-## Template
-Create a new app in your current directory by running.
+This is an application that I put together to make my daily life and work easier.
 
-```cli
-> dotnet new keboo.wpf
-```
+## Requirements
 
-### Parameters
-[Default template options](https://learn.microsoft.com/dotnet/core/tools/dotnet-new#options)
+You need to download [ffmpeg.exe](https://ffmpeg.org/download.html) to be able to convert the audios and place it in the executable path of the application where "MasterApplication.exe" is located.
 
-## Key Features
+## Template Creation
 
-### Generic Host Dependency Injection
-*TODO*
+The template for this application was created from Kevin Bost. I've learned a lot about WPF programming from his youtube videos, I highly recommend watching him.
 
-### CEntralized Package Management
-*TODO*
+- [Kevin's github](https://github.com/Keboo)
+- [Template (Used the WPF solution one)](https://github.com/Keboo/DotnetTemplates)
+- [Kevin's youtube channel](https://www.youtube.com/@Kitokeboo)
 
-### Build Customization
-*TODO*
+## Features
 
-### CommunityToolkit MVVM
-*TODO*
+### MD5 HASH GENERATION
 
-### Material Design in XAML
-*TODO*
+You can select one or multiple files to generate the MD5 hash of them then save them to a file or just click on any row to copy the MD5 hash.
 
-### .editorconfig formatting
-*TODO*
+### AUDIO DOWNLOADER
 
-### Testing with Moq.AutoMocker
-*TODO*
+You can download audio from a link or a file containing all the links, each separated by a comma.

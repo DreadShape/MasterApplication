@@ -8,14 +8,15 @@ namespace MasterApplication.Services.Dialog
         /// Opens a dialog to select a file or multiple ones.
         /// </summary>
         /// <returns>All the files selected.</returns>
-        public string[] ShowOpenFileDialog()
+        public string[] ShowOpenFileDialog(string filter = "*.*", bool allowMultipleFileSelection = true)
         {
             OpenFileDialog openFileDialog = new()
             {
                 Title = "Select file/s...",
+                Filter = filter,
                 CheckFileExists = true,
                 CheckPathExists = true,
-                Multiselect = true
+                Multiselect = allowMultipleFileSelection
             };
 
             if (openFileDialog.ShowDialog() == true)

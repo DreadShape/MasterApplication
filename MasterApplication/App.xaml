@@ -19,11 +19,15 @@
         <!-- CustomColors -->
         <ResourceDictionary Source="Styles/ColorStyles.xaml" />
 
+        <!-- CustomForms -->
+        <ResourceDictionary Source="Styles/FormStyles.xaml" />
+
       </ResourceDictionary.MergedDictionaries>
 
       <!-- Converters -->
       <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
       <Converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
+      <Converters:HexToBrushConverter x:Key="HexToBrushConverter" />
     </ResourceDictionary>
   </Application.Resources>
 </Application>

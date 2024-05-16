@@ -8,8 +8,10 @@ public interface IDialogService
     /// <summary>
     /// Opens a dialog to select a file or multiple ones.
     /// </summary>
-    /// <returns>All the files selected.</returns>
-    string[] ShowOpenFileDialog();
+    /// <param name="filter">Filter to what extension files to show. Default is every file.</param>
+    /// <param name="allowMultipleFileSelection">Allows multiple selection of files. Default is 'True'.</param>
+    /// <returns>All the selected files.</returns>
+    string[] ShowOpenFileDialog(string filter = "*.*", bool allowMultipleFileSelection = true);
 
     /// <summary>
     /// Opens a dialog to select a folder.
