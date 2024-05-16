@@ -9,15 +9,16 @@
         Title="Master Application"
         Width="1280"
         Height="800"
+        Topmost="True"
         Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d">
   <Grid>
-    <!-- Main Menu -->
+    <!-- Other Menu -->
     <TabControl materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
                 Background="{StaticResource PrimaryDarkBackgroundColor}"
                 Style="{StaticResource MaterialDesignNavigationRailTabControl}">
 
-      <!-- Others -->
+      <!-- MD5HashFileGenerator -->
       <TabItem Width="120"
                Height="100"
                Padding="10,20,10,20">
