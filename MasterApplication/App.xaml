@@ -9,7 +9,7 @@
       <ResourceDictionary.MergedDictionaries>
         <materialDesign:CustomColorTheme BaseTheme="Dark"
                                          PrimaryColor="#F5E8C7"
-                                         SecondaryColor="#687f85" />
+                                         SecondaryColor="#8caa97" />
         <!--<materialDesign:CustomColorTheme BaseTheme="Light"
                                  PrimaryColor="#cc00cc"
                                  SecondaryColor="#00d4d4" />-->

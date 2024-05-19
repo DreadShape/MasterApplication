@@ -10,5 +10,182 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d">
-  <Grid />
+  <materialDesign:Card Padding="10,10,0,10" Background="{StaticResource PrimaryMidBackgroundColor}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <Grid Margin="0,0,15,0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!-- ComboBox and FormButtons -->
+        <Grid Grid.Row="0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+
+          <ComboBox Grid.Column="0"
+              Margin="0,0,10,0"
+              materialDesign:HintAssist.Hint="Review Type"
+              ItemsSource="{Binding ReviewTypes}"
+              SelectedItem="{Binding ReviewType}"
+              Style="{StaticResource BiggerFontComboBox}" />
+
+          <!-- ClearForm -->
+          <Button Grid.Column="1"
+            Content="Clear Form"
+            Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- AcceptReview -->
+          <Button Grid.Column="2"
+            HorizontalAlignment="Right"
+            Content="Accept Review"
+            Style="{StaticResource BiggerSecondaryLightButtons}" />
+        </Grid>
+
+        <!-- BookReviewForm -->
+        <StackPanel Grid.Row="1">
+
+          <!-- TL;DR -->
+          <Grid Margin="0,20,0,0">
+            <TextBox MaxHeight="150"
+               Margin="0,0,0,20"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="TL;DR"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+          </Grid>
+
+          <!-- MainStory -->
+          <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+               MaxHeight="100"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Main Story"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+            <ToggleButton Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{materialDesign:PackIcon Kind=WindowClose}"
+                    DockPanel.Dock="Right"
+                    FontWeight="SemiBold"
+                    IsChecked="True"
+                    Style="{StaticResource CustomToggleButtonStyle}" />
+          </Grid>
+
+          <!-- SideStories -->
+          <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+               MaxHeight="100"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Side Stories"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+            <ToggleButton Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{materialDesign:PackIcon Kind=WindowClose}"
+                    DockPanel.Dock="Right"
+                    FontWeight="SemiBold"
+                    IsChecked="True"
+                    Style="{StaticResource CustomToggleButtonStyle}" />
+          </Grid>
+
+          <!-- Characters -->
+          <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+               MaxHeight="100"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Characters"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+            <ToggleButton Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{materialDesign:PackIcon Kind=WindowClose}"
+                    DockPanel.Dock="Right"
+                    FontWeight="SemiBold"
+                    IsChecked="True"
+                    Style="{StaticResource CustomToggleButtonStyle}" />
+          </Grid>
+
+          <!-- Setting/Ambiance -->
+          <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+               MaxHeight="100"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Setting/Ambiance"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+            <ToggleButton Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{materialDesign:PackIcon Kind=WindowClose}"
+                    DockPanel.Dock="Right"
+                    FontWeight="SemiBold"
+                    IsChecked="True"
+                    Style="{StaticResource CustomToggleButtonStyle}" />
+          </Grid>
+
+          <!-- Ending -->
+          <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+               MaxHeight="100"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Ending"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+            <ToggleButton Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{materialDesign:PackIcon Kind=WindowClose}"
+                    DockPanel.Dock="Right"
+                    FontWeight="SemiBold"
+                    IsChecked="True"
+                    Style="{StaticResource CustomToggleButtonStyle}" />
+          </Grid>
+
+          <!-- ExtensiveReview -->
+          <Grid Margin="0,20,0,0">
+            <TextBox MaxHeight="200"
+               VerticalAlignment="Top"
+               materialDesign:HintAssist.Hint="Extensive Review"
+               materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+               Style="{StaticResource BiggerFontOutlineTextBox}" />
+
+          </Grid>
+
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+  </materialDesign:Card>
 </UserControl>

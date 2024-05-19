@@ -68,7 +68,7 @@
                                      Height="32"
                                      Margin="0,0,0,5"
                                      HorizontalAlignment="Center"
-                                     Kind="Book" />
+                                     Kind="BookOpenPageVariant" />
             <TextBlock HorizontalAlignment="Center"
                        Text="BOOK REVIEW"
                        TextAlignment="Center"

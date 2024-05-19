@@ -30,16 +30,16 @@
               Grid.Column="0"
               Margin="5,0,5,10"
               Command="{Binding SelectFilesAndCalculateHashesCommand}"
-              Height="40"
-              Content="Select Files" />
+              Content="Select Files"
+              Style="{StaticResource BiggerLightButtons}" />
 
       <!-- SaveToFileButton -->
       <Button Grid.Row="0"
               Grid.Column="1"
               Margin="5,0,0,10"
-              Height="40"
               Command="{Binding SaveCalculatedHashesToFileCommand}"
-              Content="Save To File" />
+              Content="Save To File"
+              Style="{StaticResource BiggerLightButtons}" />
 
       <!-- UnderlineSeparator -->
       <Canvas Grid.Row="1"
@@ -55,10 +55,10 @@
                 AutoGenerateColumns="False"
                 CanUserAddRows="False"
                 CanUserDeleteRows="False"
+                CurrentCellChanged="DataGrid_CurrentCellChanged"
                 IsReadOnly="True"
                 ItemsSource="{Binding Files}"
                 SelectionMode="Single"
-                CurrentCellChanged="DataGrid_CurrentCellChanged"
                 Visibility="{Binding Files.Count, Converter={StaticResource IntToVisibilityConverter}}">
 
         <DataGrid.CellStyle>
