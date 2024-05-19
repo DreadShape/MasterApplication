@@ -4,7 +4,7 @@ using System.Windows.Threading;
 
 using CommunityToolkit.Mvvm.Messaging;
 
-using MasterApplication.Feature.BookReview;
+using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;

@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-using MasterApplication.Feature.BookReview;
+using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;

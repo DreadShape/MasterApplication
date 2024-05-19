@@ -1,7 +1,7 @@
 ﻿<UserControl x:Class="MasterApplication.Menus.Other.OtherView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:BookReview="clr-namespace:MasterApplication.Feature.BookReview"
+             xmlns:BookReview="clr-namespace:MasterApplication.Feature.BookReviews"
              xmlns:Md5Hash="clr-namespace:MasterApplication.Feature.Md5HashFileGenerator"
              xmlns:Youtube="clr-namespace:MasterApplication.Feature.YoutubeAudioDownloader"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"

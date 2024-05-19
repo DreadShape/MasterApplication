@@ -1,13 +1,25 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using MasterApplication.Models;
+using MasterApplication.Models.Enums;
+
+using MaterialDesignThemes.Wpf;
+
 using Microsoft.Extensions.Logging;
 
-namespace MasterApplication.Feature.BookReview;
+namespace MasterApplication.Feature.BookReviews;
 
 public partial class BookReviewViewModel : ObservableObject
 {
     #region Properties
+
+    public ISnackbarMessageQueue SnackbarMessageQueue { get; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AcceptReviewCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearFormCommand))]
+    private BookReviewType _bookReviewType;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AcceptReviewCommand))]
@@ -76,9 +88,11 @@ public partial class BookReviewViewModel : ObservableObject
     /// Creates and instance of an <see cref="HomeViewModel"/>.
     /// </summary>
     /// <param name="logger"><see cref="ILogger"/> to be able to log information, warnings and errors.</param>
-    public BookReviewViewModel(ILogger<BookReviewViewModel> logger)
+    /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
+    public BookReviewViewModel(ILogger<BookReviewViewModel> logger, ISnackbarMessageQueue snackbarMessageQueue)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
     }
 
     #endregion
@@ -95,7 +109,34 @@ public partial class BookReviewViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanAcceptReview))]
     private void OnAcceptReview()
     {
+        BookReview bookReview = new()
+        {
+            ReviewType = BookReviewType,
+            Summary = Summary,
 
+            MainStory = MainStory,
+            IsLikedMainStory = IsLikedMainStory,
+
+            SideStories = SideStories,
+            IsLikedSideStories = IsLikedSideStories,
+
+            Characters = Characters,
+            IsLikedCharacters = IsLikedCharacters,
+
+            SettingsAndAmbiance = SettingsAndAmbiance,
+            IsLikedSettingsAndAmbiance = IsLikedSettingsAndAmbiance,
+
+            Ending = Ending,
+            IsLikedEnding = IsLikedEnding
+        };
+
+        //TODO: Transform the review based on the Type
+
+
+        CopyBookReviewToClipboard(bookReview);
+
+        //SendMessageToUI
+        SnackbarMessageQueue.Enqueue("Book review copied and ready to be used!");
     }
 
     /// <summary>
@@ -104,6 +145,7 @@ public partial class BookReviewViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanClearForm))]
     private void OnClearForm()
     {
+        BookReviewType = BookReviewType.GoodReads;
         Summary = string.Empty;
 
         MainStory = string.Empty;
@@ -142,7 +184,8 @@ public partial class BookReviewViewModel : ObservableObject
     /// Enables or disables the "ClearForm" button on the UI based on if at least one input is not empty.
     /// </summary>
     /// <returns>'True' if at least one input isn't empty, 'False' if all of them are.</returns>
-    private bool CanClearForm() => !string.IsNullOrEmpty(Summary) ||
+    private bool CanClearForm() => BookReviewType != BookReviewType.GoodReads ||
+                                   !string.IsNullOrEmpty(Summary) ||
                                    !string.IsNullOrEmpty(MainStory) ||
                                    IsLikedMainStory ||
                                    !string.IsNullOrEmpty(SideStories) ||
@@ -162,6 +205,15 @@ public partial class BookReviewViewModel : ObservableObject
     #endregion
 
     #region PrivateMethods
+
+    /// <summary>
+    /// Copies the <see cref="BookReview"/> to the clipboard, ready to be pasted on the website.
+    /// </summary>
+    /// <param name="bookReview"><see cref="BookReview"/> model to transform.</param>
+    private void CopyBookReviewToClipboard(BookReview bookReview)
+    {
+
+    }
 
     #endregion
 }
