@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="MasterApplication.Menus.Other.OtherView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:BookReview="clr-namespace:MasterApplication.Feature.BookReviews"
              xmlns:Md5Hash="clr-namespace:MasterApplication.Feature.Md5HashFileGenerator"
              xmlns:Youtube="clr-namespace:MasterApplication.Feature.YoutubeAudioDownloader"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -18,7 +19,7 @@
                 TabStripPlacement="Top">
 
       <!-- MD5HashFileGenerator -->
-      <TabItem Width="120"
+      <TabItem Width="130"
                Height="100"
                Padding="10,20,10,20">
         <TabItem.Header>
@@ -38,23 +39,43 @@
       </TabItem>
 
       <!-- YoutubeAudioDownloader -->
-      <TabItem Width="120"
-         Height="100"
-         Padding="10,20,10,20">
+      <TabItem Width="130"
+               Height="100"
+               Padding="10,20,10,20">
         <TabItem.Header>
           <StackPanel>
             <materialDesign:PackIcon Width="32"
-                               Height="32"
-                               Margin="0,0,0,5"
-                               HorizontalAlignment="Center"
-                               Kind="Youtube" />
+                                     Height="32"
+                                     Margin="0,0,0,5"
+                                     HorizontalAlignment="Center"
+                                     Kind="Youtube" />
             <TextBlock HorizontalAlignment="Center"
-                 Text="YOUTUBE"
-                 TextAlignment="Center"
-                 TextWrapping="Wrap" />
+                       Text="YOUTUBE"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
           </StackPanel>
         </TabItem.Header>
-        <Youtube:YoutubeAudioDownloaderView x:Name="Feature_YoutubeAudioDownloader"></Youtube:YoutubeAudioDownloaderView>
+        <Youtube:YoutubeAudioDownloaderView x:Name="Feature_YoutubeAudioDownloader" />
+      </TabItem>
+
+      <!-- BookReview -->
+      <TabItem Width="130"
+               Height="100"
+               Padding="10,20,10,20">
+        <TabItem.Header>
+          <StackPanel>
+            <materialDesign:PackIcon Width="32"
+                                     Height="32"
+                                     Margin="0,0,0,5"
+                                     HorizontalAlignment="Center"
+                                     Kind="BookOpenPageVariant" />
+            <TextBlock HorizontalAlignment="Center"
+                       Text="BOOK REVIEW"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </TabItem.Header>
+        <BookReview:BookReviewView x:Name="Feature_BookReview" />
       </TabItem>
 
     </TabControl>

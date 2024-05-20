@@ -81,8 +81,8 @@ public partial class FileViewModel : ObservableObject
     /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
     public FileViewModel(ILogger<FileViewModel> logger, IDialogService dialogService)
     {
-        _logger = logger;
-        _dialogService = dialogService;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _youtubeClient = new();
         _progressBar = new Progress<double>(x => IndividualProgressBarValue = (int)(x * 100));
         _cancellationTokenSource = new();
