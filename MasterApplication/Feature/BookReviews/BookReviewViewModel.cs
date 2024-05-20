@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Windows;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using MasterApplication.Models;
@@ -113,6 +115,7 @@ public partial class BookReviewViewModel : ObservableObject
         {
             ReviewType = BookReviewType,
             Summary = Summary,
+            ScoringSystem = "I have five things I look for in a book, if the book checks all five it's a 5/5 stars book, if it checks none it's a 1/5 stars and everything else is a combination:",
 
             MainStory = MainStory,
             IsLikedMainStory = IsLikedMainStory,
@@ -127,13 +130,42 @@ public partial class BookReviewViewModel : ObservableObject
             IsLikedSettingsAndAmbiance = IsLikedSettingsAndAmbiance,
 
             Ending = Ending,
-            IsLikedEnding = IsLikedEnding
+            IsLikedEnding = IsLikedEnding,
+
+            ExtensiveReview = ExtensiveReview
         };
 
-        //TODO: Transform the review based on the Type
+        // Goodreads review
+        if (BookReviewType == BookReviewType.GoodReads)
+        {
+            bookReview.Summary = $"<b>TL;DR</b>{Environment.NewLine}{Summary}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
 
+            bookReview.ScoringSystem = $"<b>My Scoring System</b>{Environment.NewLine}{bookReview.ScoringSystem}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.MainStory = $"<b>{(IsLikedMainStory ? "&#x2713;" : "X")} - Main Story:</b> {bookReview.MainStory}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SideStories = $"<b>{(IsLikedSideStories ? "&#x2713;" : "X")} - Side Stories (if it applies):</b> {bookReview.SideStories}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Characters = $"<b>{(IsLikedCharacters ? "&#x2713;" : "X")} - Characters:</b> {bookReview.Characters}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SettingsAndAmbiance = $"<b>{(IsLikedSettingsAndAmbiance ? "&#x2713;" : "X")} - Setting/Ambiance:</b> {bookReview.SettingsAndAmbiance}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Ending = $"<b>{(IsLikedEnding ? "&#x2713;" : "X")} - Ending:</b> {bookReview.Ending}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
 
-        CopyBookReviewToClipboard(bookReview);
+            bookReview.ExtensiveReview = $"<b>Extensive Review</b>{Environment.NewLine}{bookReview.ExtensiveReview}";
+        }
+
+        if (BookReviewType == BookReviewType.Hardcover)
+        {
+            bookReview.Summary = $"TL;DR{Environment.NewLine}{Summary}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
+
+            bookReview.ScoringSystem = $"My Scoring System{Environment.NewLine}{bookReview.ScoringSystem}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.MainStory = $"{(IsLikedMainStory ? "&#x2713;" : "X")} - Main Story: {bookReview.MainStory}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SideStories = $"{(IsLikedSideStories ? "&#x2713;" : "X")} - Side Stories (if it applies): {bookReview.SideStories}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Characters = $"{(IsLikedCharacters ? "&#x2713;" : "X")} - Characters: {bookReview.Characters}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SettingsAndAmbiance = $"{(IsLikedSettingsAndAmbiance ? "&#x2713;" : "X")} - Setting/Ambiance: {bookReview.SettingsAndAmbiance}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Ending = $"{(IsLikedEnding ? "&#x2713;" : "X")} - Ending: {bookReview.Ending}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
+
+            bookReview.ExtensiveReview = $"Extensive Review{Environment.NewLine}{bookReview.ExtensiveReview}";
+        }
+
+        Clipboard.Clear();
+        Clipboard.SetText(bookReview.ToClipboardString());
 
         //SendMessageToUI
         SnackbarMessageQueue.Enqueue("Book review copied and ready to be used!");
@@ -205,15 +237,6 @@ public partial class BookReviewViewModel : ObservableObject
     #endregion
 
     #region PrivateMethods
-
-    /// <summary>
-    /// Copies the <see cref="BookReview"/> to the clipboard, ready to be pasted on the website.
-    /// </summary>
-    /// <param name="bookReview"><see cref="BookReview"/> model to transform.</param>
-    private void CopyBookReviewToClipboard(BookReview bookReview)
-    {
-
-    }
 
     #endregion
 }
