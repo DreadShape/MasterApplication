@@ -8,7 +8,7 @@ namespace MasterApplication.Services.Dialog
         /// Opens a dialog to select a file or multiple ones.
         /// </summary>
         /// <returns>All the files selected.</returns>
-        public string[] ShowOpenFileDialog(string filter = "*.*", bool allowMultipleFileSelection = true)
+        public string[] ShowOpenFileDialog(string filter = "Files...|*.*", bool allowMultipleFileSelection = true)
         {
             OpenFileDialog openFileDialog = new()
             {

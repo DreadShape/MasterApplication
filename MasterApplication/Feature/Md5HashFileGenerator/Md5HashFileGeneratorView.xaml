@@ -10,80 +10,84 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d">
-  <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
-    <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition />
-      </Grid.ColumnDefinitions>
+  <Grid>
+    <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
 
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="2" />
-        <RowDefinition />
-      </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="2" />
+          <RowDefinition />
+        </Grid.RowDefinitions>
 
-      <!-- Buttons -->
-      <!-- SelectFilesButton -->
-      <Button Grid.Row="0"
-              Grid.Column="0"
-              Margin="5,0,5,10"
-              Command="{Binding SelectFilesAndCalculateHashesCommand}"
-              Height="40"
-              Content="Select Files" />
+        <!-- Buttons -->
+        <!-- SelectFilesButton -->
+        <Button Grid.Row="0"
+                Grid.Column="0"
+                Margin="5,0,5,10"
+                Command="{Binding SelectFilesAndCalculateHashesCommand}"
+                Content="Select Files"
+                Style="{StaticResource BiggerLightButtons}" />
 
-      <!-- SaveToFileButton -->
-      <Button Grid.Row="0"
-              Grid.Column="1"
-              Margin="5,0,0,10"
-              Height="40"
-              Command="{Binding SaveCalculatedHashesToFileCommand}"
-              Content="Save To File" />
+        <!-- SaveToFileButton -->
+        <Button Grid.Row="0"
+                Grid.Column="1"
+                Margin="5,0,0,10"
+                Command="{Binding SaveCalculatedHashesToFileCommand}"
+                Content="Save To File"
+                Style="{StaticResource BiggerLightButtons}" />
 
-      <!-- UnderlineSeparator -->
-      <Canvas Grid.Row="1"
-              Grid.Column="0"
-              Grid.ColumnSpan="3"
-              Background="{StaticResource PrimaryLightBackgroundColor}" />
-
-      <!-- HashFiles -->
-      <DataGrid Grid.Row="2"
+        <!-- UnderlineSeparator -->
+        <Canvas Grid.Row="1"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
-                Margin="0,10,0,0"
-                AutoGenerateColumns="False"
-                CanUserAddRows="False"
-                CanUserDeleteRows="False"
-                IsReadOnly="True"
-                ItemsSource="{Binding Files}"
-                SelectionMode="Single"
-                CurrentCellChanged="DataGrid_CurrentCellChanged"
-                Visibility="{Binding Files.Count, Converter={StaticResource IntToVisibilityConverter}}">
+                Background="{StaticResource PrimaryLightBackgroundColor}" />
 
-        <DataGrid.CellStyle>
-          <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
-            <Setter Property="BorderThickness" Value="0" />
-          </Style>
-        </DataGrid.CellStyle>
+        <!-- HashFiles -->
+        <DataGrid Grid.Row="2"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="3"
+                  Margin="0,10,0,0"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CurrentCellChanged="DataGrid_CurrentCellChanged"
+                  IsReadOnly="True"
+                  ItemsSource="{Binding Files}"
+                  SelectionMode="Single"
+                  Visibility="{Binding Files.Count, Converter={StaticResource IntToVisibilityConverter}}">
 
-        <DataGrid.Columns>
+          <DataGrid.CellStyle>
+            <Style TargetType="DataGridCell" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+              <Setter Property="BorderThickness" Value="0" />
+            </Style>
+          </DataGrid.CellStyle>
 
-          <!-- Name Column -->
-          <DataGridTextColumn Width="Auto"
-                              Binding="{Binding Name}"
-                              Header="Name" />
+          <DataGrid.Columns>
 
-          <!-- Hash Column -->
-          <DataGridTextColumn Width="*"
-                              Binding="{Binding Hash}"
-                              Header="Hash" />
-        </DataGrid.Columns>
-      </DataGrid>
+            <!-- Name Column -->
+            <DataGridTextColumn Width="Auto"
+                                Binding="{Binding Name}"
+                                Header="Name" />
 
-      <materialDesign:Snackbar Grid.Row="2"
-                               Grid.ColumnSpan="3"
-                               MessageQueue="{Binding SnackbarMessageQueue}" />
-    </Grid>
-  </materialDesign:Card>
+            <!-- Hash Column -->
+            <DataGridTextColumn Width="*"
+                                Binding="{Binding Hash}"
+                                Header="Hash" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+      </Grid>
+
+    </materialDesign:Card>
+
+    <!-- SnackBar -->
+    <materialDesign:Snackbar MessageQueue="{Binding SnackbarMessageQueue}" />
+    
+  </Grid>
 </UserControl>

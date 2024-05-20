@@ -45,7 +45,7 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
         IMd5HashFileGeneratorService md5HashFileGeneratorService, ISnackbarMessageQueue snackbarMessageQueue)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _dialogService = dialogService;
+        _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _md5HashFileGeneratorService = md5HashFileGeneratorService ?? throw new ArgumentNullException(nameof(md5HashFileGeneratorService));
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));

@@ -1,5 +1,6 @@
 ﻿using System.Windows.Input;
 
+using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
@@ -19,12 +20,14 @@ public partial class MainWindow
     /// <param name="md5HashFileGeneratorViewModel"><see cref="Md5HashFileGeneratorView"/>'s view model.</param>
     /// <param name="youtubeAudioDownloaderViewModel"><see cref="YoutubeAudioDownloaderView"/>'s view model.</param>
     /// <param name="linkViewModel"><see cref="LinkViewModel"/>'s view model.</param>
+    /// <param name="bookReviewViewModel"><see cref="BookReviewViewModel"/>'s view model.</param>
     public MainWindow(MainWindowViewModel viewModel, 
         OtherViewModel otherViewModel, 
         Md5HashFileGeneratorViewModel md5HashFileGeneratorViewModel, 
         YoutubeAudioDownloaderViewModel youtubeAudioDownloaderViewModel,
         LinkViewModel linkViewModel,
-        FileViewModel fileViewModel)
+        FileViewModel fileViewModel,
+        BookReviewViewModel bookReviewViewModel)
     {
         DataContext = viewModel;
         InitializeComponent();
@@ -33,6 +36,7 @@ public partial class MainWindow
         Menu_OtherView.Feature_YoutubeAudioDownloader.DataContext = youtubeAudioDownloaderViewModel;
         Menu_OtherView.Feature_YoutubeAudioDownloader.LinkView.DataContext = linkViewModel;
         Menu_OtherView.Feature_YoutubeAudioDownloader.FileView.DataContext = fileViewModel;
+        Menu_OtherView.Feature_BookReview.DataContext = bookReviewViewModel;
 
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }

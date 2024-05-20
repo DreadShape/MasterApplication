@@ -140,7 +140,7 @@
               Command="{Binding CancelCommand}"
               Content="Cancel"
               IsEnabled="{Binding IsCancelButtonEnabled}"
-              Style="{StaticResource BiggerDarkButtons}" />
+              Style="{StaticResource BiggerSecondaryLightButtons}" />
 
     </Grid>
   </materialDesign:Card>
