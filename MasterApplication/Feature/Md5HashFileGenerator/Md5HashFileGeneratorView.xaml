@@ -16,6 +16,7 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
@@ -26,9 +27,17 @@
         </Grid.RowDefinitions>
 
         <!-- Buttons -->
-        <!-- SelectFilesButton -->
+        <!-- ClearButton -->
         <Button Grid.Row="0"
                 Grid.Column="0"
+                Margin="5,0,5,10"
+                Command="{Binding ClearCalculatedHashesCommand}"
+                Content="Clear Hashes"
+                Style="{StaticResource BiggerLightButtons}" />
+
+        <!-- SelectFilesButton -->
+        <Button Grid.Row="0"
+                Grid.Column="1"
                 Margin="5,0,5,10"
                 Command="{Binding SelectFilesAndCalculateHashesCommand}"
                 Content="Select Files"
@@ -36,7 +45,7 @@
 
         <!-- SaveToFileButton -->
         <Button Grid.Row="0"
-                Grid.Column="1"
+                Grid.Column="2"
                 Margin="5,0,0,10"
                 Command="{Binding SaveCalculatedHashesToFileCommand}"
                 Content="Save To File"
@@ -45,13 +54,13 @@
         <!-- UnderlineSeparator -->
         <Canvas Grid.Row="1"
                 Grid.Column="0"
-                Grid.ColumnSpan="3"
+                Grid.ColumnSpan="4"
                 Background="{StaticResource PrimaryLightBackgroundColor}" />
 
         <!-- HashFiles -->
         <DataGrid Grid.Row="2"
                   Grid.Column="0"
-                  Grid.ColumnSpan="3"
+                  Grid.ColumnSpan="4"
                   Margin="0,10,0,0"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
@@ -88,6 +97,6 @@
 
     <!-- SnackBar -->
     <materialDesign:Snackbar MessageQueue="{Binding SnackbarMessageQueue}" />
-    
+
   </Grid>
 </UserControl>

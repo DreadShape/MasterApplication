@@ -9,11 +9,11 @@ namespace MasterApplication
     /// <typeparam name="T"></typeparam>
     public class NotifyCanExecuteChangedObservableCollection<T> : ObservableCollection<T>
     {
-        private readonly Action _notifyCanExecuteChanged;
+        private readonly IList<Action> _notifyCanExecuteChangedList;
 
-        public NotifyCanExecuteChangedObservableCollection(Action notifyCanExecuteChanged)
+        public NotifyCanExecuteChangedObservableCollection(IList<Action> notifyCanExecuteChangedList)
         {
-            _notifyCanExecuteChanged = notifyCanExecuteChanged ?? throw new ArgumentNullException(nameof(notifyCanExecuteChanged));
+            _notifyCanExecuteChangedList = notifyCanExecuteChangedList ?? throw new ArgumentNullException(nameof(notifyCanExecuteChangedList));
 
             // Subscribe to the default CollectionChanged event
             CollectionChanged += CustomOnCollectionChanged;
@@ -28,7 +28,8 @@ namespace MasterApplication
             base.OnCollectionChanged(e);
 
             // Execute the provided action when the collection changes
-            _notifyCanExecuteChanged();
+            foreach (Action action in _notifyCanExecuteChangedList)
+                action();
 
             // Reattach the custom event handler
             CollectionChanged += CustomOnCollectionChanged;

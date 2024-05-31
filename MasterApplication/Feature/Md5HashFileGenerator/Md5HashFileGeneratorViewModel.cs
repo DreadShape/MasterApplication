@@ -48,8 +48,10 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
         _md5HashFileGeneratorService = md5HashFileGeneratorService ?? throw new ArgumentNullException(nameof(md5HashFileGeneratorService));
 
+        Action saveHashesAction = () => NotifyCanExecuteChanged(SaveCalculatedHashesToFileCommand);
+        Action clearHashesAction = () => NotifyCanExecuteChanged(ClearCalculatedHashesCommand);
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
-        Files = new NotifyCanExecuteChangedObservableCollection<Md5HashFile>(() => NotifyCanExecuteChanged(SaveCalculatedHashesToFileCommand));
+        Files = new NotifyCanExecuteChangedObservableCollection<Md5HashFile>(new List<Action> { saveHashesAction, clearHashesAction });
     }
 
     #endregion
@@ -65,11 +67,13 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
         string[] selectedFiles = _dialogService.ShowOpenFileDialog();
         if (selectedFiles.Length > 0)
         {
-            Files.Clear();
-
             foreach (string file in selectedFiles)
             {
                 string fileName = file.Split(Path.DirectorySeparatorChar).Last();
+                Md5HashFile? existingHash = Files.FirstOrDefault(x => x.Name.Equals(fileName));
+                if (existingHash != null)
+                    continue;
+
                 string hash = _md5HashFileGeneratorService.CalculateMd5Hash(file);
                 _logger.LogInformation("Calculated hash for item {item}: {hash}.", fileName, hash);
 
@@ -115,12 +119,21 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
         _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at {savedLocation}.", Files.Count, fileSavePath);
     }
 
+    /// <summary>
+    /// Clears all the calsulated hashes from the <see cref="Files"/> collection.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSaveToFile))]
+    private void OnClearCalculatedHashes()
+    {
+        Files?.Clear();
+    }
+
     #endregion
 
     #region CommandValidations
 
     /// <summary>
-    /// Enables or disables the "Save to file" button on the UI based on if <see cref="Files"/> is empty or not.
+    /// Enables or disables the "Save to file" and "Clear Hashes" buttons on the UI based on if <see cref="Files"/> collection is empty or not.
     /// </summary>
     /// <returns>'True' if <see cref="Files"/> has any items inside, 'False' if it doesn't.</returns>
     private bool CanSaveToFile() => Files.Any();
