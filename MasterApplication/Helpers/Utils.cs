@@ -2,6 +2,9 @@
 
 namespace MasterApplication.Helpers;
 
+/// <summary>
+/// Static class containing all sort of miscellaneous utilities methods.
+/// </summary>
 public static class Utils
 {
     /// <summary>

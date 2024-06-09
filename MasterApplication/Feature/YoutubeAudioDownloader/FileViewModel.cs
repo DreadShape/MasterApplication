@@ -153,6 +153,7 @@ public partial class FileViewModel : ObservableObject
     [RelayCommand]
     private async Task OnDownload()
     {
+        IsErrorTextVisible = false;
         _cancellationTokenSource = new();
         IsProgressBarVisible = true;
         IsCancelButtonEnabled = true;
@@ -203,6 +204,9 @@ public partial class FileViewModel : ObservableObject
         StatusTextForeground = HexColors.Default;
         Status = "Waiting for file...";
         IsDownloadButtonEnabled = false;
+        IsCancelButtonEnabled = false;
+        FileLocation = string.Empty;
+        IsErrorTextVisible = true;
     }
 
     /// <summary>
@@ -217,6 +221,7 @@ public partial class FileViewModel : ObservableObject
         Status = "Ready to download...";
         IsDownloadButtonEnabled = true;
         IsCancelButtonEnabled = false;
+        IsErrorTextVisible = true;
         _cancellationTokenSource?.Cancel();
     }
 
@@ -250,6 +255,9 @@ public partial class FileViewModel : ObservableObject
             
             for (int i = 0; i < fileLines.Length; i++)
             {
+                if (string.IsNullOrWhiteSpace(fileLines[i]))
+                    continue;
+
                 StatusTextForeground = HexColors.Default;
                 Status = $"Analyzing links, please wait... {i}/{fileLines.Length}";
                 _logger.LogInformation("Analyzing audio link {link}.", fileLines[i]);

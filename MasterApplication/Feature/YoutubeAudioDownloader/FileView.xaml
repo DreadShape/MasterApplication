@@ -99,6 +99,7 @@
                  FontSize="14"
                  FontWeight="SemiBold"
                  Foreground="#f27f7f"
+                 Visibility="{Binding IsErrorTextVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                  Text="{Binding ErrorText}" />
 
       <!-- Individual Progress Bar -->

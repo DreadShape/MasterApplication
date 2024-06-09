@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace MasterApplication.Converters;
 
-class HexToBrushConverter : IValueConverter
+public class HexToBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {

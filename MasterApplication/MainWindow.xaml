@@ -9,7 +9,6 @@
         Title="Master Application"
         Width="1280"
         Height="820"
-        Topmost="True"
         Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d">
   <Grid>

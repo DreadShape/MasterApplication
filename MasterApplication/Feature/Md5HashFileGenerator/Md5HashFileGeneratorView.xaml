@@ -14,9 +14,9 @@
     <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
       <Grid>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="140" />
+          <ColumnDefinition Width="140" />
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
