@@ -10,7 +10,7 @@ using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.Logging;
 
-namespace MasterApplication.Feature.BookReviews;
+namespace MasterApplication.Features.BookReviews;
 
 public partial class BookReviewViewModel : ObservableObject
 {

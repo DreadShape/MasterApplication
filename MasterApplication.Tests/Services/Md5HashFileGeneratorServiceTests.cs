@@ -1,4 +1,4 @@
-﻿using MasterApplication.Feature.Md5HashFileGenerator;
+﻿using MasterApplication.Features.Md5HashFileGenerator;
 using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;

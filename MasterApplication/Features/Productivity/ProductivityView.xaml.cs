@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace MasterApplication.Feature.Productivity;
+namespace MasterApplication.Features.Productivity;
 
 /// <summary>
 /// Interaction logic for ProductivityView.xaml

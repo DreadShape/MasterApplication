@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace MasterApplication.Feature.YoutubeAudioDownloader;
+namespace MasterApplication.Features.YoutubeAudioDownloader;
 
 /// <summary>
 /// Interaction logic for YoutubeAudioDownloaderView.xaml

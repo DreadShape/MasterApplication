@@ -13,7 +13,7 @@ using YoutubeExplode;
 using YoutubeExplode.Converter;
 using YoutubeExplode.Videos;
 
-namespace MasterApplication.Feature.YoutubeAudioDownloader
+namespace MasterApplication.Features.YoutubeAudioDownloader
 {
     public partial class LinkViewModel : ObservableObject
     {

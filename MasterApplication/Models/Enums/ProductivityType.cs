@@ -5,6 +5,7 @@
 /// </summary>
 public enum ProductivityType
 {
+    None,
     Reading,
     Programming,
     PianoPlaying,

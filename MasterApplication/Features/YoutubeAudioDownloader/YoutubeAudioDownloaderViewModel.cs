@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MasterApplication.Feature.YoutubeAudioDownloader;
+namespace MasterApplication.Features.YoutubeAudioDownloader;
 
 public partial class YoutubeAudioDownloaderViewModel : ObservableObject
 {

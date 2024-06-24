@@ -4,9 +4,10 @@ using System.Windows.Threading;
 
 using CommunityToolkit.Mvvm.Messaging;
 
-using MasterApplication.Feature.BookReviews;
-using MasterApplication.Feature.Md5HashFileGenerator;
-using MasterApplication.Feature.YoutubeAudioDownloader;
+using MasterApplication.Features.BookReviews;
+using MasterApplication.Features.Md5HashFileGenerator;
+using MasterApplication.Features.Productivity;
+using MasterApplication.Features.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
@@ -76,6 +77,8 @@ public partial class App : Application
             services.AddSingleton<OtherViewModel>();
 
             //Features
+            services.AddSingleton<ProductivityViewModel>();
+            services.AddSingleton<DailyProductivityChunksViewModel>();
             services.AddSingleton<Md5HashFileGeneratorViewModel>();
             services.AddSingleton<YoutubeAudioDownloaderViewModel>();
             services.AddSingleton<LinkViewModel>();

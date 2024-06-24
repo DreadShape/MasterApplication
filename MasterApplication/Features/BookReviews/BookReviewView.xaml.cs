@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace MasterApplication.Feature.BookReviews;
+namespace MasterApplication.Features.BookReviews;
 
 /// <summary>
 /// Interaction logic for BookReviewView.xaml

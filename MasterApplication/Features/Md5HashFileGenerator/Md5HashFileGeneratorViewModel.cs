@@ -12,7 +12,7 @@ using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.Logging;
 
-namespace MasterApplication.Feature.Md5HashFileGenerator;
+namespace MasterApplication.Features.Md5HashFileGenerator;
 
 public partial class Md5HashFileGeneratorViewModel : ObservableObject
 {

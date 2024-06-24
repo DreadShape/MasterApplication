@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 using MasterApplication.Models;
 
-namespace MasterApplication.Feature.Md5HashFileGenerator;
+namespace MasterApplication.Features.Md5HashFileGenerator;
 
 /// <summary>
 /// Interaction logic for Md5HashFileGeneratorView.xaml
