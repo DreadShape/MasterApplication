@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
+using MasterApplication.Feature.MouseClicker;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
 using MasterApplication.Services.Dialog;
@@ -81,6 +82,7 @@ public partial class App : Application
             services.AddSingleton<LinkViewModel>();
             services.AddSingleton<FileViewModel>();
             services.AddSingleton<BookReviewViewModel>();
+            services.AddSingleton<MouseClickerViewModel>();
             
             //Logging
             services.AddLogging(loggingBuilder =>

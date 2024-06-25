@@ -2,6 +2,7 @@
 
 using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
+using MasterApplication.Feature.MouseClicker;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
 
@@ -19,15 +20,17 @@ public partial class MainWindow
     /// <param name="otherViewModel"><see cref="OtherView"/>'s menu view model.</param>
     /// <param name="md5HashFileGeneratorViewModel"><see cref="Md5HashFileGeneratorView"/>'s view model.</param>
     /// <param name="youtubeAudioDownloaderViewModel"><see cref="YoutubeAudioDownloaderView"/>'s view model.</param>
-    /// <param name="linkViewModel"><see cref="LinkViewModel"/>'s view model.</param>
-    /// <param name="bookReviewViewModel"><see cref="BookReviewViewModel"/>'s view model.</param>
+    /// <param name="linkViewModel"><see cref="LinkView"/>'s view model.</param>
+    /// <param name="bookReviewViewModel"><see cref="BookReviewView"/>'s view model.</param>
+    /// <param name="mouseClickerViewModel"><see cref="MouseClickerView"/>'s view model.</param>
     public MainWindow(MainWindowViewModel viewModel, 
         OtherViewModel otherViewModel, 
         Md5HashFileGeneratorViewModel md5HashFileGeneratorViewModel, 
         YoutubeAudioDownloaderViewModel youtubeAudioDownloaderViewModel,
         LinkViewModel linkViewModel,
         FileViewModel fileViewModel,
-        BookReviewViewModel bookReviewViewModel)
+        BookReviewViewModel bookReviewViewModel,
+        MouseClickerViewModel mouseClickerViewModel)
     {
         DataContext = viewModel;
         InitializeComponent();
@@ -37,6 +40,7 @@ public partial class MainWindow
         Menu_OtherView.Feature_YoutubeAudioDownloader.LinkView.DataContext = linkViewModel;
         Menu_OtherView.Feature_YoutubeAudioDownloader.FileView.DataContext = fileViewModel;
         Menu_OtherView.Feature_BookReview.DataContext = bookReviewViewModel;
+        Menu_OtherView.Feature_MouseClicker.DataContext = mouseClickerViewModel;
 
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }

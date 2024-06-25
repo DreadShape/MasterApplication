@@ -1,0 +1,105 @@
+﻿<UserControl x:Class="MasterApplication.Feature.MouseClicker.MouseClickerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MasterApplication.Feature.MouseClicker"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=local:MouseClickerViewModel,
+                                              IsDesignTimeCreatable=False}"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             mc:Ignorable="d">
+  <Grid>
+    <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="2" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!-- Options -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Margin="0,0,5,20"
+                   FontSize="16"
+                   Text="Options:" />
+
+        <!-- Buttons -->
+        <!-- StartAutoClicker -->
+        <Button Grid.Row="1"
+                Grid.Column="0"
+                Width="180"
+                Margin="5,0,5,20"
+                Command="{Binding StartAutoClickerCommand}"
+                Content="Ready to Auto Click"
+                Style="{StaticResource BiggerLightButtons}" />
+
+        <!-- StartSequenceButton -->
+        <Button Grid.Row="1"
+                Grid.Column="1"
+                Width="180"
+                Margin="5,0,5,20"
+                Command="{Binding CreateSequenceCommand}"
+                Content="Create Sequence"
+                Style="{StaticResource BiggerLightButtons}" />
+
+        <!-- ClearSequenceButton -->
+        <Button Grid.Row="1"
+                Grid.Column="2"
+                Width="180"
+                Margin="5,0,0,20"
+                Command="{Binding ClearSequenceCommand}"
+                Content="Clear Sequence"
+                Style="{StaticResource BiggerLightButtons}" />
+
+        <!-- UnderlineSeparator -->
+        <Canvas Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="4"
+                Background="{StaticResource PrimaryLightBackgroundColor}" />
+
+        <!-- Keybindings -->
+        <TextBlock Grid.Row="3"
+                   Grid.Column="0"
+                   Margin="0,20,5,20"
+                   FontSize="16"
+                   Text="Key Bindings:" />
+
+        <!-- StartAutoClicker -->
+        <Button Grid.Row="4"
+                Grid.Column="0"
+                Width="180"
+                Margin="5,0,10,0"
+                Command="{Binding SetStartAutoClickerKeybindingCommand}"
+                Content="Start: ''"
+                Style="{StaticResource BiggerLightButtons}" />
+
+        <!-- StopAutoClicker -->
+        <Button Grid.Row="4"
+                Grid.Column="1"
+                Width="180"
+                Margin="10,0,10,0"
+                Command="{Binding SetStopAutoClickerKeybindingCommand}"
+                Content="Stop: ''"
+                Style="{StaticResource BiggerLightButtons}" />
+
+      </Grid>
+    </materialDesign:Card>
+
+    <!-- SnackBar -->
+    <materialDesign:Snackbar MessageQueue="{Binding SnackbarMessageQueue}" />
+
+  </Grid>
+</UserControl>

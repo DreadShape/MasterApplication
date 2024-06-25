@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:BookReview="clr-namespace:MasterApplication.Feature.BookReviews"
              xmlns:Md5Hash="clr-namespace:MasterApplication.Feature.Md5HashFileGenerator"
+             xmlns:MouseClicker="clr-namespace:MasterApplication.Feature.MouseClicker"
              xmlns:Youtube="clr-namespace:MasterApplication.Feature.YoutubeAudioDownloader"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:MasterApplication.Menus.Other"
@@ -19,7 +20,7 @@
                 TabStripPlacement="Top">
 
       <!-- MD5HashFileGenerator -->
-      <TabItem Width="130"
+      <TabItem Width="140"
                Height="100"
                Padding="10,20,10,20">
         <TabItem.Header>
@@ -39,7 +40,7 @@
       </TabItem>
 
       <!-- YoutubeAudioDownloader -->
-      <TabItem Width="130"
+      <TabItem Width="140"
                Height="100"
                Padding="10,20,10,20">
         <TabItem.Header>
@@ -59,7 +60,7 @@
       </TabItem>
 
       <!-- BookReview -->
-      <TabItem Width="130"
+      <TabItem Width="140"
                Height="100"
                Padding="10,20,10,20">
         <TabItem.Header>
@@ -76,6 +77,26 @@
           </StackPanel>
         </TabItem.Header>
         <BookReview:BookReviewView x:Name="Feature_BookReview" />
+      </TabItem>
+
+      <!-- BookReview -->
+      <TabItem Width="140"
+               Height="100"
+               Padding="10,20,10,20">
+        <TabItem.Header>
+          <StackPanel>
+            <materialDesign:PackIcon Width="32"
+                                     Height="32"
+                                     Margin="0,0,0,5"
+                                     HorizontalAlignment="Center"
+                                     Kind="Mouse" />
+            <TextBlock HorizontalAlignment="Center"
+                       Text="MOUSE CLICKER"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </TabItem.Header>
+        <MouseClicker:MouseClickerView x:Name="Feature_MouseClicker" />
       </TabItem>
 
     </TabControl>
