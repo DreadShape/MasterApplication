@@ -10,6 +10,6 @@ public partial class ErrorDialog : UserControl
     public ErrorDialog(string contentText)
     {
         InitializeComponent();
-        ContentTextbox.Text = contentText ?? string.Empty;
+        ContentTextblock.Text = contentText ?? "Generic error, please check the logs for more information.";
     }
 }

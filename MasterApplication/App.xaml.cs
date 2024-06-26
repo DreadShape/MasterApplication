@@ -9,8 +9,10 @@ using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.MouseClicker;
 using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Menus.Other;
+using MasterApplication.Models.Messages;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
+using MasterApplication.Services.Feature.MouseClicker;
 
 using MaterialDesignThemes.Wpf;
 
@@ -58,6 +60,14 @@ public partial class App : Application
         app.InitializeComponent();
         app.MainWindow = host.Services.GetRequiredService<MainWindow>();
         app.MainWindow.Visibility = Visibility.Visible;
+
+        // Register the message handler to minimize the window
+        IMessenger? messenger = host.Services.GetRequiredService<IMessenger>();
+        messenger.Register<MinimizeWindowMessage>(app, (recipient, message) =>
+        {
+            app.MainWindow.WindowState = WindowState.Minimized;
+        });
+
         app.Run();
 
         await host.StopAsync().ConfigureAwait(true);
@@ -72,6 +82,8 @@ public partial class App : Application
             //Services
             services.AddSingleton<IDialogService, WindowsDialogService>();
             services.AddSingleton<IMd5HashFileGeneratorService, Md5HashFileGeneratorService>();
+            services.AddSingleton<IMouseService, MouseService>();
+            services.AddSingleton<IKeyboardService, KeyboardService>();
 
             //Menus
             services.AddSingleton<OtherViewModel>();

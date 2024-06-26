@@ -47,6 +47,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="AutoClicker.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

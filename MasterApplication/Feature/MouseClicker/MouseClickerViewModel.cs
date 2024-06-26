@@ -1,9 +1,16 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.IO;
+using System.Text.Json;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
+using MasterApplication.Models;
+using MasterApplication.Models.Enums;
+using MasterApplication.Models.Messages;
+using MasterApplication.Models.Structs;
 using MasterApplication.Services.Dialog;
+using MasterApplication.Services.Feature.MouseClicker;
 
 using MaterialDesignThemes.Wpf;
 
@@ -17,20 +24,22 @@ public partial class MouseClickerViewModel : ObservableObject
 
     public ISnackbarMessageQueue SnackbarMessageQueue { get; }
 
-    public NotifyCanExecuteChangedObservableCollection<int[][]> Sequence;
+    public IList<AutoClickerSequence> _autoClickerSequence = new List<AutoClickerSequence>();
 
-    [ObservableProperty]
-    private string _startClickerKeybinding;
-
-    [ObservableProperty]
-    private string _stopClickerKeybinding;
+    public AutoClicker _autoClicker;
 
     #endregion
 
     #region PrivateFields
 
     private readonly ILogger _logger;
+    private readonly IMessenger _messenger;
+    private readonly IMouseService _mouseService;
+    private readonly IKeyboardService _keyboardService;
     private readonly IDialogService _dialogService;
+
+    private readonly string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
+    private CancellationTokenSource? _cancellationTokenSource;
 
     #endregion
 
@@ -40,17 +49,29 @@ public partial class MouseClickerViewModel : ObservableObject
     /// Creates an instance of a <see cref="MouseClickerViewModel"/>.
     /// </summary>
     /// <param name="logger"><see cref="ILogger"/> to be able to los information, warnings and errors.</param>
+    /// <param name="messengerService"><see cref="IMessenger"/> to send/receive messenger from different parts of the application.</param>
+    /// <param name="mouseService"><see cref="IMouseService"/> to simulate mouse clicks on the screen.</param>
+    /// <param name="keyboardService"><see cref="IKeyboardService"/> to intercept keyboard presses.</param>
     /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
     /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
-    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IDialogService dialogService, ISnackbarMessageQueue snackbarMessageQueue)
+    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IMouseService mouseService, IKeyboardService keyboardService, 
+        IDialogService dialogService, ISnackbarMessageQueue snackbarMessageQueue)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _mouseService = mouseService ?? throw new ArgumentNullException(nameof(mouseService));
+        _mouseService.MouseClicked -= MouseServiceOnMouseClicked;
+        _mouseService.MouseClicked += MouseServiceOnMouseClicked;
+
+        _keyboardService = keyboardService ?? throw new ArgumentNullException(nameof(keyboardService));
+        _keyboardService.KeyPressed -= KeyboardServiceOnKeyPressed;
+        _keyboardService.KeyPressed += KeyboardServiceOnKeyPressed;
+
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
-        Action canClearSequenceAction = () => NotifyCanExecuteChanged(ClearSequenceCommand);
-        Action canStartSequenceAction = () => NotifyCanExecuteChanged(StartAutoClickerCommand);
+        _autoClicker = new();
+
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
-        Sequence = new NotifyCanExecuteChangedObservableCollection<int[][]>(new List<Action> { canClearSequenceAction, canStartSequenceAction });
     }
 
     #endregion
@@ -58,12 +79,12 @@ public partial class MouseClickerViewModel : ObservableObject
     #region Commands
 
     /// <summary>
-    /// Starts the mouse clicker when pressing the specified key binding.
+    /// Opens the auto clicker menu with all it's options.
     /// </summary>
-    [RelayCommand(CanExecute = nameof(CanClearOrStartSequence))]
-    private void OnStartAutoClicker()
+    [RelayCommand]
+    private void OnOpenAutoClickerMenu()
     {
-
+        LoadConfigurationFile();
     }
 
     /// <summary>
@@ -72,58 +93,273 @@ public partial class MouseClickerViewModel : ObservableObject
     [RelayCommand]
     private void OnCreateSequence()
     {
+        string exeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        string jsonFilePath = Path.Combine(exeDirectory, "AutoClicker.json");
 
-    }
+        if (File.Exists(jsonFilePath))
+        {
+            
 
-    /// <summary>
-    /// Clears the <see cref="Sequence"/> collection.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanClearOrStartSequence))]
-    private void OnClearSequence()
-    {
-        Sequence?.Clear();
-    }
+        }
 
-    /// <summary>
-    /// Sets a start keybinding to start the auto clicker.
-    /// </summary>
-    [RelayCommand]
-    private void OnSetStartAutoClickerKeybinding()
-    {
+        _messenger.Send(new MinimizeWindowMessage());
+        _keyboardService.StartKeyboardHook();
+        //_mouseService.StartMouseHook();
 
-    }
+        // Minimize the application
+        /*_messenger.Send(new MinimizeWindowMessage());
+        _keyboardService.StartKeyboardHook();
+        _mouseService.StartMouseHook();*/
 
-    /// <summary>
-    /// Sets a stop keybinding to finish the auto clicker.
-    /// </summary>
-    [RelayCommand]
-    private void OnSetStopAutoClickerKeybinding()
-    {
+        /*Thread.Sleep(2000);
+        Task.Run(() =>
+        {
+            MouseCoordinate mouseCoordinate = new MouseCoordinate(1700, 598);
+            for (int i = 0; i < 8; i++)
+            {
+                _mouseService.ClickLeftMouseButton(mouseCoordinate.X, mouseCoordinate.Y);
+                Thread.Sleep(100);
+            }
+            *//*while (_interceptingCursor)
+            {
+                MouseCoordinate position = _mouseService.GetMousePos();
+                Test = $"X:{position.X} - Y:{position.Y}";
+                Thread.Sleep(500);
+            }*//*
+        });*/
+        // Minimize the application
+        //_messenger.Send(new MinimizeWindowMessage());
+        //Thread.Sleep(2000);
+        /*try
+        {
+            MouseSimulator.ClickLeftMouseButton(1291, 745);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+            throw;
+        }*/
+        /*_interceptingCursor = true;
+        _interceptingKeyboard = true;
+        _proc = HookCallback;
+        _hookID = SetHook(_proc);
 
+        // Get the current cursor position
+        while (_interceptingCursor)
+        {
+            try
+            {
+                if (GetCursorPos(out POINT cursorPosition))
+                {
+                    Sequence.Add(cursorPosition);
+                    MessageBox.Show($"Cursor Position: X = {cursorPosition.X}, Y = {cursorPosition.Y}");
+                }
+            }
+            catch (Exception ex)
+            {
+                var test = ex;
+            }
+        }*/
     }
 
     #endregion
 
     #region CommandValidations
-
-    /// <summary>
-    /// Enables or disables the "Ready to Click" and "Clear Sequence" buttons on the UI based on if <see cref="Sequence"/> collection is empty or not.
-    /// </summary>
-    /// <returns>'True' if <see cref="Sequence"/> has any items inside, 'False' if it doesn't.</returns>
-    private bool CanClearOrStartSequence() => Sequence.Any();
-
     #endregion
 
     #region ErrorValidations
-
-
-
     #endregion
 
     #region PrivateMethods
 
+    /// <summary>
+    /// Loads the different sequences we have stored in a cofiguration file.
+    /// </summary>
+    private void LoadConfigurationFile()
+    {
+        try
+        {
+            string autoClickerConfigurationFilePath = Path.Combine(executingDirectory, "AutoClicker.json");
+            if (File.Exists(autoClickerConfigurationFilePath))
+            {
+                string jsonString = File.ReadAllText(autoClickerConfigurationFilePath);
+                _autoClicker = JsonSerializer.Deserialize<AutoClicker>(jsonString) ?? new();
 
+                /*foreach (AutoClickerSequence sequence in _autoClicker.Bidding.Steps)
+                {
+                    _autoClickerSequence.Add(sequence);
+                }*/
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Could not load auto clicker configuration file. Exception: {ex}", ex);
+        }
+    }
 
+    /// <summary>
+    /// Mouse clicked intercepted from the mouse.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="mouseCoordinate"></param>
+    private void MouseServiceOnMouseClicked(object? sender, MouseCoordinate mouseCoordinate)
+    {
+        //Todo: If we right click we stop intercepting the keys
+    }
+
+    /// <summary>
+    /// Key pressed intercepted from the keyboard.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="vkCode">Code of the key pressed.</param>
+    private void KeyboardServiceOnKeyPressed(object? sender, int vkCode)
+    {
+        switch (vkCode)
+        {
+            //Comma
+            case 188:
+                //ToggleBiddingClicker();
+                break;
+
+            //Hyphen/Underline
+            case 189:
+                ToggleAutoClicker(220);
+                break;
+
+            //Period
+            case 190:
+                //ToggleBiddingClicker();
+                //ToggleSellingClicker();
+                break;
+
+            //Escape
+            case 27:
+                _mouseService.StopMouseHook();
+                //_keyboardService.StopKeyboardHook();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Toggles the selling autocliker.
+    /// </summary>
+    /// <param name="speed">Speed of each clicks.</param>
+    public void ToggleAutoClicker(int speed)
+    {
+        //Start
+        if (_cancellationTokenSource == null)
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken token = _cancellationTokenSource.Token;
+
+            //Start auto-clicker
+            Task.Run(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    MouseCoordinate mousePosition = _mouseService.GetMousePos();
+                    _mouseService.MoveCursorTo(mousePosition.X, mousePosition.Y);
+                    _mouseService.ClickLeftMouseButton();
+                    Thread.Sleep(speed);
+                }
+            }, token);
+
+            return;
+        }
+
+        //Stop auto-clicker
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = null;
+    }
+
+    /// <summary>
+    /// Toggles the selling autocliker.
+    /// </summary>
+    public void ToggleSellingClicker()
+    {
+        //StartAutoClicker
+        if (_cancellationTokenSource == null)
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken token = _cancellationTokenSource.Token;
+
+            
+            Task.Run(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    foreach (AutoClickerSequence sequence in _autoClickerSequence)
+                    {
+                        _mouseService.MoveCursorTo(sequence.X, sequence.Y);
+                        Thread.Sleep(sequence.Sleep);
+                        _mouseService.ClickLeftMouseButton();
+
+                        if (token.IsCancellationRequested)
+                            return;
+                    }
+                }
+            }, token);
+
+            return;
+        }
+
+        //StopAutoClicker
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = null;
+    }
+
+    /// <summary>
+    /// Toggles the bidding autocliker.
+    /// </summary>
+    public void ToggleAutoClicker(AutoClickerType type)
+    {
+        switch (type)
+        {
+            case AutoClickerType.Buying:
+                break;
+
+            case AutoClickerType.Selling:
+                break;
+
+            case AutoClickerType.Bidding:
+                break;
+
+            default:
+                break;
+        }
+        //StartAutoClicker
+        if (_cancellationTokenSource == null)
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            CancellationToken token = _cancellationTokenSource.Token;
+
+            Task.Run(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    foreach (AutoClickerSequence sequence in _autoClickerSequence)
+                    {
+                        _mouseService.MoveCursorTo(sequence.X, sequence.Y);
+                        Thread.Sleep(sequence.Sleep);
+                        _mouseService.ClickLeftMouseButton();
+
+                        if (token.IsCancellationRequested)
+                            return;
+                    }
+                }
+            }, token);
+
+            return;
+        }
+
+        //StopAutoClicker
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = null;
+    }
+
+    #endregion
+
+    #region PublicMethods
     #endregion
 
     #region CustomNotifyCanExecutedChanged

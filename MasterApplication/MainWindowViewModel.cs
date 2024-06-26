@@ -4,4 +4,5 @@ namespace MasterApplication;
 
 public partial class MainWindowViewModel : ObservableObject
 {
+
 }

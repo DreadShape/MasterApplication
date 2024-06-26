@@ -15,84 +15,20 @@
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="2" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
-          <RowDefinition />
         </Grid.RowDefinitions>
 
-        <!-- Options -->
-        <TextBlock Grid.Row="0"
-                   Grid.Column="0"
-                   Margin="0,0,5,20"
-                   FontSize="16"
-                   Text="Options:" />
-
-        <!-- Buttons -->
         <!-- StartAutoClicker -->
         <Button Grid.Row="1"
                 Grid.Column="0"
                 Width="180"
                 Margin="5,0,5,20"
-                Command="{Binding StartAutoClickerCommand}"
-                Content="Ready to Auto Click"
-                Style="{StaticResource BiggerLightButtons}" />
-
-        <!-- StartSequenceButton -->
-        <Button Grid.Row="1"
-                Grid.Column="1"
-                Width="180"
-                Margin="5,0,5,20"
-                Command="{Binding CreateSequenceCommand}"
-                Content="Create Sequence"
-                Style="{StaticResource BiggerLightButtons}" />
-
-        <!-- ClearSequenceButton -->
-        <Button Grid.Row="1"
-                Grid.Column="2"
-                Width="180"
-                Margin="5,0,0,20"
-                Command="{Binding ClearSequenceCommand}"
-                Content="Clear Sequence"
-                Style="{StaticResource BiggerLightButtons}" />
-
-        <!-- UnderlineSeparator -->
-        <Canvas Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
-                Background="{StaticResource PrimaryLightBackgroundColor}" />
-
-        <!-- Keybindings -->
-        <TextBlock Grid.Row="3"
-                   Grid.Column="0"
-                   Margin="0,20,5,20"
-                   FontSize="16"
-                   Text="Key Bindings:" />
-
-        <!-- StartAutoClicker -->
-        <Button Grid.Row="4"
-                Grid.Column="0"
-                Width="180"
-                Margin="5,0,10,0"
-                Command="{Binding SetStartAutoClickerKeybindingCommand}"
-                Content="Start: ''"
-                Style="{StaticResource BiggerLightButtons}" />
-
-        <!-- StopAutoClicker -->
-        <Button Grid.Row="4"
-                Grid.Column="1"
-                Width="180"
-                Margin="10,0,10,0"
-                Command="{Binding SetStopAutoClickerKeybindingCommand}"
-                Content="Stop: ''"
+                Command="{Binding OpenAutoClickerMenuCommand}"
+                Content="Open Menu"
                 Style="{StaticResource BiggerLightButtons}" />
 
       </Grid>
