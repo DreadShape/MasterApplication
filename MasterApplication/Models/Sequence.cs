@@ -7,6 +7,9 @@ namespace MasterApplication.Models;
 /// </summary>
 public class Sequence
 {
+    public string StartKeyBind { get; set; }
+    public string StopKeyBind { get; set; }
+
     public IList<AutoClickerSequence> Steps { get; set; }
 
     /// <summary>
@@ -14,6 +17,8 @@ public class Sequence
     /// </summary>
     public Sequence()
     {
+        StartKeyBind = string.Empty;
+        StopKeyBind = string.Empty;
         Steps = new List<AutoClickerSequence>();
     }
 }

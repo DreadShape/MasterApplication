@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  
+
   <SolidColorBrush x:Key="PrimaryDarkBackgroundColor" Color="#191919" />
   <SolidColorBrush x:Key="PrimaryMidBackgroundColor" Color="#353535" />
   <SolidColorBrush x:Key="PrimaryLightBackgroundColor" Color="#808080" />

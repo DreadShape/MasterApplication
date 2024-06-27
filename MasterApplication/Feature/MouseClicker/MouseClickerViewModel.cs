@@ -14,19 +14,18 @@ using MasterApplication.Services.Feature.MouseClicker;
 
 using MaterialDesignThemes.Wpf;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MasterApplication.Feature.MouseClicker;
 
-public partial class MouseClickerViewModel : ObservableObject
+public partial class MouseClickerViewModel : ObservableObject, IRecipient<BringToFrontWindowMessage>
 {
     #region Properties
 
     public ISnackbarMessageQueue SnackbarMessageQueue { get; }
 
     public IList<AutoClickerSequence> _autoClickerSequence = new List<AutoClickerSequence>();
-
-    public AutoClicker _autoClicker;
 
     #endregion
 
@@ -37,8 +36,10 @@ public partial class MouseClickerViewModel : ObservableObject
     private readonly IMouseService _mouseService;
     private readonly IKeyboardService _keyboardService;
     private readonly IDialogService _dialogService;
+    private readonly IServiceProvider _serviceProvider;
 
-    private readonly string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
+    private AutoClickerMenuView? _autoClickerMenuView;
+    private AutoClickerMenuViewModel? _autoClickerMenuViewModel;
     private CancellationTokenSource? _cancellationTokenSource;
 
     #endregion
@@ -53,9 +54,10 @@ public partial class MouseClickerViewModel : ObservableObject
     /// <param name="mouseService"><see cref="IMouseService"/> to simulate mouse clicks on the screen.</param>
     /// <param name="keyboardService"><see cref="IKeyboardService"/> to intercept keyboard presses.</param>
     /// <param name="dialogService"><see cref="IDialogService"/> open dialogs for the user.</param>
+    /// <param name="serviceProvider"><see cref="IServiceProvider"/> to get access to the dependency injector container.</param>
     /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
     public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IMouseService mouseService, IKeyboardService keyboardService, 
-        IDialogService dialogService, ISnackbarMessageQueue snackbarMessageQueue)
+        IDialogService dialogService, IServiceProvider serviceProvider, ISnackbarMessageQueue snackbarMessageQueue)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
@@ -67,9 +69,11 @@ public partial class MouseClickerViewModel : ObservableObject
         _keyboardService.KeyPressed -= KeyboardServiceOnKeyPressed;
         _keyboardService.KeyPressed += KeyboardServiceOnKeyPressed;
 
+        _messenger.Register(this);
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
-        _autoClicker = new();
+        _autoClickerMenuView = new();
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
     }
@@ -81,10 +85,16 @@ public partial class MouseClickerViewModel : ObservableObject
     /// <summary>
     /// Opens the auto clicker menu with all it's options.
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanOpenAutoClickerMenu))]
     private void OnOpenAutoClickerMenu()
     {
-        LoadConfigurationFile();
+        _autoClickerMenuView = new ();
+        _autoClickerMenuViewModel = _serviceProvider.GetRequiredService<AutoClickerMenuViewModel>();
+        _autoClickerMenuView.DataContext = _autoClickerMenuViewModel;
+        _messenger.Send(new MinimizeWindowMessage());
+        _autoClickerMenuView.Show();
+        _autoClickerMenuView.Activate();
+        NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
     }
 
     /// <summary>
@@ -165,37 +175,31 @@ public partial class MouseClickerViewModel : ObservableObject
     #endregion
 
     #region CommandValidations
+
+    /// <summary>
+    /// Enables or disables the "Open Menu" button on the UI based on if <see cref="AutoClickerMenuView"/> is visible or not.
+    /// </summary>
+    /// <returns>'True' if <see cref="AutoClickerMenuView"/> isn't visible, 'False' if it is.</returns>
+    private bool CanOpenAutoClickerMenu() => _autoClickerMenuView != null && !_autoClickerMenuView.IsVisible;
     #endregion
 
     #region ErrorValidations
     #endregion
 
-    #region PrivateMethods
+    #region PublicMethods
 
     /// <summary>
-    /// Loads the different sequences we have stored in a cofiguration file.
+    /// <see cref="IRecipient{TMessage}"/>' implementation to process different messages received from all parts of the application.
     /// </summary>
-    private void LoadConfigurationFile()
+    /// <param name="message">The message received.</param>
+    public void Receive(BringToFrontWindowMessage message)
     {
-        try
-        {
-            string autoClickerConfigurationFilePath = Path.Combine(executingDirectory, "AutoClicker.json");
-            if (File.Exists(autoClickerConfigurationFilePath))
-            {
-                string jsonString = File.ReadAllText(autoClickerConfigurationFilePath);
-                _autoClicker = JsonSerializer.Deserialize<AutoClicker>(jsonString) ?? new();
-
-                /*foreach (AutoClickerSequence sequence in _autoClicker.Bidding.Steps)
-                {
-                    _autoClickerSequence.Add(sequence);
-                }*/
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError("Could not load auto clicker configuration file. Exception: {ex}", ex);
-        }
+        NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
     }
+
+    #endregion
+
+    #region PrivateMethods
 
     /// <summary>
     /// Mouse clicked intercepted from the mouse.
@@ -357,9 +361,6 @@ public partial class MouseClickerViewModel : ObservableObject
         _cancellationTokenSource = null;
     }
 
-    #endregion
-
-    #region PublicMethods
     #endregion
 
     #region CustomNotifyCanExecutedChanged

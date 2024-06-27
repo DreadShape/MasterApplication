@@ -68,6 +68,12 @@ public partial class App : Application
             app.MainWindow.WindowState = WindowState.Minimized;
         });
 
+        messenger.Register<BringToFrontWindowMessage>(app, (recipient, message) =>
+        {
+            app.MainWindow.WindowState = WindowState.Normal;
+            app.MainWindow.Activate();
+        });
+
         app.Run();
 
         await host.StopAsync().ConfigureAwait(true);
@@ -81,6 +87,7 @@ public partial class App : Application
         {
             //Services
             services.AddSingleton<IDialogService, WindowsDialogService>();
+            services.AddSingleton<IDialogHost, MaterialDesignDialogHost>();
             services.AddSingleton<IMd5HashFileGeneratorService, Md5HashFileGeneratorService>();
             services.AddSingleton<IMouseService, MouseService>();
             services.AddSingleton<IKeyboardService, KeyboardService>();
@@ -95,6 +102,7 @@ public partial class App : Application
             services.AddSingleton<FileViewModel>();
             services.AddSingleton<BookReviewViewModel>();
             services.AddSingleton<MouseClickerViewModel>();
+            services.AddSingleton<AutoClickerMenuViewModel>();
             
             //Logging
             services.AddLogging(loggingBuilder =>

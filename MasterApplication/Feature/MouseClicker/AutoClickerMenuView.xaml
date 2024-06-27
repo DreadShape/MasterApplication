@@ -1,0 +1,235 @@
+﻿<Window x:Class="MasterApplication.Feature.MouseClicker.AutoClickerMenuView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Enums="clr-namespace:MasterApplication.Models.Enums"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:local="clr-namespace:MasterApplication.Feature.MouseClicker"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="AutoClickerMenuView"
+        Width="350"
+        Height="450"
+        d:DataContext="{d:DesignInstance Type=local:AutoClickerMenuViewModel,
+                                         IsDesignTimeCreatable=False}"
+        Background="{StaticResource PrimaryDarkBackgroundColor}"
+        Closed="Window_Closed"
+        Style="{StaticResource MaterialDesignWindow}"
+        Topmost="True"
+        mc:Ignorable="d">
+  <Window.Resources>
+    <!-- Provide the enum values to the ComboBox -->
+    <ObjectDataProvider x:Key="AutoClickerTypeEnumProvider"
+                        MethodName="GetValues"
+                        ObjectType="{x:Type sys:Enum}">
+      <ObjectDataProvider.MethodParameters>
+        <x:Type TypeName="Enums:AutoClickerType" />
+      </ObjectDataProvider.MethodParameters>
+    </ObjectDataProvider>
+  </Window.Resources>
+
+  <materialDesign:DialogHost DialogContentUniformCornerRadius="5"
+                             DialogTheme="Inherit"
+                             Identifier="AutoClickerDialog">
+    <Border BorderThickness="2">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="2" />
+          <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="0.8*" />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   Margin="10,10,15,5"
+                   FontSize="16"
+                   Text="Status:" />
+
+        <TextBlock Grid.Row="0"
+                   Grid.Column="1"
+                   Margin="0,10,0,5"
+                   FontSize="16"
+                   Foreground="{Binding AutoClickerStatusForecolor, Converter={StaticResource HexToBrushConverter}}"
+                   Text="{Binding AutoClickerStatus}" />
+
+        <!-- Sequence -->
+        <TextBlock Grid.Row="1"
+                   Grid.Column="0"
+                   Margin="10,5,15,5"
+                   FontSize="16"
+                   Text="Sequence:" />
+
+        <TextBlock Grid.Row="1"
+                   Grid.Column="1"
+                   Margin="0,5,0,5"
+                   FontSize="16"
+                   Text="{Binding AutoClickerType}" />
+
+        <!-- Steps -->
+        <TextBlock Grid.Row="2"
+                   Grid.Column="0"
+                   Margin="10,5,15,5"
+                   FontSize="16"
+                   Text="Steps:" />
+
+        <TextBlock Grid.Row="2"
+                   Grid.Column="1"
+                   Margin="0,5,0,10"
+                   FontSize="16"
+                   Text="{Binding AutoClickerCurrentSequenceSteps}" />
+
+        <!-- KeyBindingsGrid -->
+        <Grid Grid.Row="0"
+              Grid.RowSpan="3"
+              Grid.Column="2">
+          <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+          </Grid.RowDefinitions>
+
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+
+          <!-- StartKeybind -->
+          <TextBlock Grid.Row="0"
+                     Grid.Column="0"
+                     Margin="0,10,5,5"
+                     VerticalAlignment="Center"
+                     FontSize="16"
+                     Text="Start Keybind:" />
+
+          <TextBlock Grid.Row="0"
+                     Grid.Column="1"
+                     VerticalAlignment="Center"
+                     FontSize="16"
+                     FontWeight="Bold"
+                     Text="W" />
+
+          <!-- StopKeybind -->
+          <TextBlock Grid.Row="1"
+                     Grid.Column="0"
+                     Margin="0,5,5,5"
+                     VerticalAlignment="Center"
+                     FontSize="16"
+                     Text="Stop Keybind:" />
+
+          <TextBlock Grid.Row="1"
+                     Grid.Column="1"
+                     VerticalAlignment="Center"
+                     FontSize="16"
+                     FontWeight="Bold"
+                     Text="W" />
+        </Grid>
+
+        <!-- UnderlineSeparator -->
+        <Canvas Grid.Row="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Margin="3,0,3,0"
+                Background="{StaticResource PrimaryLightBackgroundColor}" />
+
+        <!-- OptionsSecondGrid -->
+        <Grid Grid.Row="4"
+              Grid.Column="0"
+              Grid.ColumnSpan="3">
+
+          <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+          </Grid.RowDefinitions>
+
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+
+          <!-- SequenceComboBox -->
+          <ComboBox Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="5,10,5,10"
+                    materialDesign:HintAssist.Hint="Sequence"
+                    ItemsSource="{Binding Source={StaticResource AutoClickerTypeEnumProvider}}"
+                    SelectedItem="{Binding AutoClickerType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Style="{StaticResource BiggerFontComboBox}">
+            <i:Interaction.Triggers>
+              <i:EventTrigger EventName="SelectionChanged">
+                <i:InvokeCommandAction Command="{Binding SequenceSelectedItemChangedCommand}" />
+              </i:EventTrigger>
+            </i:Interaction.Triggers>
+          </ComboBox>
+
+          <!-- CreateSequence -->
+          <Button Grid.Row="0"
+                  Grid.Column="1"
+                  Margin="5,10,5,10"
+                  Command="{Binding CreateSequenceCommand}"
+                  Content="Create Sequence"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- SetStartKeybind -->
+          <Button Grid.Row="1"
+                  Grid.Column="0"
+                  Margin="5,10,5,10"
+                  Command="{Binding SetStartKeybindCommand}"
+                  Content="Start Keybind"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- SetStopKeybind -->
+          <Button Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="5,10,5,10"
+                  Command="{Binding SetStopKeybindCommand}"
+                  Content="Stop Keybind"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- StartAutoClicker -->
+          <Button Grid.Row="2"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="2"
+                  Margin="5,10,5,10"
+                  Command="{Binding StartAutoClickerCommand}"
+                  Content="Start AutoClicker"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- InstructionsGrid -->
+          <Grid Grid.Row="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="2">
+
+            <Grid.RowDefinitions>
+              <RowDefinition Height="2" />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <!-- UnderlineSeparator -->
+            <Canvas Grid.Row="0"
+                    Margin="3,0,3,0"
+                    Background="{StaticResource PrimaryLightBackgroundColor}" />
+
+            <!-- Instructions -->
+            <TextBlock Grid.Row="1"
+                       Margin="5,10,5,10"
+                       FontSize="14"
+                       Text="{Binding AutoClickerInstructions}"
+                       TextWrapping="Wrap" />
+          </Grid>
+        </Grid>
+      </Grid>
+    </Border>
+  </materialDesign:DialogHost>
+</Window>
