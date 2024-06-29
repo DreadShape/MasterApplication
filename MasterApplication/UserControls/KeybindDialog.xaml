@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="MasterApplication.UserControls.KeybindDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MasterApplication.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             IsVisibleChanged="UserControl_IsVisibleChanged"
+             mc:Ignorable="d">
+  <Grid MaxWidth="360" MaxHeight="260">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="50" />
+      <RowDefinition />
+      <RowDefinition />
+      <RowDefinition />
+    </Grid.RowDefinitions>
+
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition />
+      <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+
+    <!-- Title -->
+    <Grid Grid.Row="0"
+          Grid.Column="0"
+          Grid.ColumnSpan="2"
+          Background="{StaticResource PrimaryDarkBackgroundColor}">
+
+      <TextBlock Style="{StaticResource DialogTitle}" Text="Keybind" />
+    </Grid>
+
+    <!-- Content -->
+    <TextBlock x:Name="ContentTextblock"
+               Grid.Row="1"
+               Grid.Column="0"
+               Grid.ColumnSpan="2"
+               Margin="20,10,20,0"
+               Style="{StaticResource DialogContent}" />
+
+    <!-- Content -->
+    <TextBlock x:Name="KeyBindTextBlock"
+               Grid.Row="2"
+               Grid.Column="0"
+               Margin="20,10,20,20"
+               FontWeight="Bold"
+               HorizontalAlignment="Center"
+               Grid.ColumnSpan="2"
+               Style="{StaticResource DialogContent}" />
+
+    <!-- AcceptButton -->
+    <Button Grid.Row="3"
+            Grid.Column="0"
+            Margin="20,0,10,20"
+            Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+            Content="Accept"
+            Style="{StaticResource BiggerLightButtons}">
+      <Button.CommandParameter>
+        <system:Boolean>False</system:Boolean>
+      </Button.CommandParameter>
+    </Button>
+
+    <!-- CancelButton -->
+    <Button Grid.Row="3"
+            Grid.Column="1"
+            Margin="10,0,20,20"
+            Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+            Content="Cancel"
+            Style="{StaticResource BiggerDarkButtons}">
+      <Button.CommandParameter>
+        <system:Boolean>True</system:Boolean>
+      </Button.CommandParameter>
+    </Button>
+  </Grid>
+</UserControl>

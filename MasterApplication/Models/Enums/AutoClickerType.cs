@@ -7,5 +7,6 @@ public enum AutoClickerType
 {
     Buying,
     Selling,
-    Bidding
+    Bidding,
+    AutoClicker
 }

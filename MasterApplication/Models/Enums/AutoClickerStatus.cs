@@ -6,6 +6,7 @@
 public enum AutoClickerStatus
 {
     IDLE,
+    READY,
     RUNNING,
     RECORDING
 }

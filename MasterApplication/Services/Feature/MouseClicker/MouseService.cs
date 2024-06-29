@@ -2,6 +2,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 
+using MasterApplication.Models;
+using MasterApplication.Models.Enums;
 using MasterApplication.Models.Structs;
 
 namespace MasterApplication.Services.Feature.MouseClicker;
@@ -46,11 +48,6 @@ public class MouseService : IMouseService
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint nInputs, [In] INPUT[] pInputs, int cbSize);
 
-    /// <summary>
-    /// Moves the cursor the the coordinates.
-    /// </summary>
-    /// <param name="x">The x-coordinate of the screen.</param>
-    /// <param name="y">The y-coordinate of the screen.</param>
     public void MoveCursorTo(int x, int y)
     {
         INPUT input = new INPUT
@@ -71,11 +68,6 @@ public class MouseService : IMouseService
         SendInput(1, new INPUT[] { input }, Marshal.SizeOf(typeof(INPUT)));
     }
 
-    /// <summary>
-    /// Simulates a left mouse click on a specific point on the screen.
-    /// </summary>
-    /// <param name="x">The x-coordinate of the screen.</param>
-    /// <param name="y">The y-coordinate of the screen.</param>
     public void ClickLeftMouseButton()
     {
         INPUT[] inputs = new INPUT[2];
@@ -117,16 +109,12 @@ public class MouseService : IMouseService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetCursorPos(out MouseCoordinate lpPoint);
 
-    /// <summary>
-    /// Gets the current position of the mouse cursor.
-    /// </summary>
-    /// <returns>The current position of the mouse cursor as a <see cref="MouseCoordinate"/>.</returns>
     public MouseCoordinate GetMousePos()
     {
         if (GetCursorPos(out MouseCoordinate lpPoint))
             return lpPoint;
 
-        return new MouseCoordinate(0,0);
+        return new MouseCoordinate(0, 0);
     }
 
     #endregion
@@ -135,11 +123,13 @@ public class MouseService : IMouseService
 
     private const int WH_MOUSE_LL = 14;
     private const int WM_LBUTTONDOWN = 0x0201;
+    private const int WM_RBUTTONDOWN = 0x0204;
+    private const int WM_MBUTTONDOWN = 0x0207;
 
     private readonly LowLevelMouseProc _proc;
     private IntPtr _hookID = IntPtr.Zero;
 
-    public event EventHandler<MouseCoordinate>? MouseClicked;
+    public event EventHandler<MouseButtonEventArgs>? MouseButtonClicked;
 
     public MouseService()
     {
@@ -179,11 +169,28 @@ public class MouseService : IMouseService
 
     private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        if (nCode >= 0 && wParam == (IntPtr)WM_LBUTTONDOWN)
+        if (nCode >= 0)
         {
-            MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
-            MouseCoordinate mouseCoordinate = new(hookStruct.pt.X, hookStruct.pt.Y);
-            MouseClicked?.Invoke(this, mouseCoordinate);
+            MouseButton button = MouseButton.None;
+            if (wParam == (IntPtr)WM_LBUTTONDOWN)
+            {
+                button = MouseButton.Left;
+            }
+            else if (wParam == (IntPtr)WM_RBUTTONDOWN)
+            {
+                button = MouseButton.Right;
+            }
+            else if (wParam == (IntPtr)WM_MBUTTONDOWN)
+            {
+                button = MouseButton.Middle;
+            }
+
+            if (button != MouseButton.None)
+            {
+                MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
+                MouseCoordinate coordinate = new MouseCoordinate(hookStruct.pt.X, hookStruct.pt.Y);
+                MouseButtonClicked?.Invoke(this, new MouseButtonEventArgs(button, coordinate));
+            }
         }
 
         return CallNextHookEx(_hookID, nCode, wParam, lParam);

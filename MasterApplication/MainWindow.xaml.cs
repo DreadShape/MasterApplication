@@ -4,6 +4,7 @@ using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.MouseClicker;
 using MasterApplication.Feature.YoutubeAudioDownloader;
+using MasterApplication.Helpers;
 using MasterApplication.Menus.Other;
 
 namespace MasterApplication;
@@ -41,12 +42,10 @@ public partial class MainWindow
         Menu_OtherView.Feature_YoutubeAudioDownloader.FileView.DataContext = fileViewModel;
         Menu_OtherView.Feature_BookReview.DataContext = bookReviewViewModel;
         Menu_OtherView.Feature_MouseClicker.DataContext = mouseClickerViewModel;
-
-        CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, OnClose));
     }
 
-    private void OnClose(object sender, ExecutedRoutedEventArgs e)
+    private void Window_Closed(object sender, EventArgs e)
     {
-        Close();
+        Utils.CloseAllProcessesWithSameName();
     }
 }

@@ -116,7 +116,7 @@
                      VerticalAlignment="Center"
                      FontSize="16"
                      FontWeight="Bold"
-                     Text="W" />
+                     Text="{Binding StartKeybind}" />
 
           <!-- StopKeybind -->
           <TextBlock Grid.Row="1"
@@ -131,7 +131,7 @@
                      VerticalAlignment="Center"
                      FontSize="16"
                      FontWeight="Bold"
-                     Text="W" />
+                     Text="{Binding StopKeybind}" />
         </Grid>
 
         <!-- UnderlineSeparator -->
@@ -185,7 +185,8 @@
           <Button Grid.Row="1"
                   Grid.Column="0"
                   Margin="5,10,5,10"
-                  Command="{Binding SetStartKeybindCommand}"
+                  Command="{Binding SetKeybindCommand}"
+                  CommandParameter="Start"
                   Content="Start Keybind"
                   Style="{StaticResource BiggerDarkButtons}" />
 
@@ -193,7 +194,8 @@
           <Button Grid.Row="1"
                   Grid.Column="1"
                   Margin="5,10,5,10"
-                  Command="{Binding SetStopKeybindCommand}"
+                  Command="{Binding SetKeybindCommand}"
+                  CommandParameter="Stop"
                   Content="Stop Keybind"
                   Style="{StaticResource BiggerDarkButtons}" />
 

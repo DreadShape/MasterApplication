@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 
 namespace MasterApplication.Helpers;
 
@@ -20,5 +21,30 @@ public static class Utils
         input = input.Trim();
 
         return input;
+    }
+
+    /// <summary>
+    /// Closes all processes with the same name as the executing executable.
+    /// </summary>
+    public static void CloseAllProcessesWithSameName()
+    {
+        // Get the current process
+        string currentProcess = Process.GetCurrentProcess().ProcessName;
+
+        // Get all processes with the same name
+        Process[] processes = Process.GetProcessesByName(currentProcess);
+
+        // Iterate through all processes
+        foreach (Process process in processes)
+        {
+            try
+            {
+                process.Kill();
+                process.WaitForExit();
+            }
+            catch (Exception ex)
+            {
+            }
+        }
     }
 }

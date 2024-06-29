@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows.Input;
 
 namespace MasterApplication.Services.Feature.MouseClicker;
 
@@ -89,4 +91,42 @@ public class KeyboardService : IKeyboardService
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+    #region GetKeyByCode
+
+    [DllImport("user32.dll")]
+    private static extern int MapVirtualKey(uint uCode, uint uMapType);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int ToUnicode(
+        uint wVirtKey,
+        uint wScanCode,
+        byte[] lpKeyState,
+        [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] StringBuilder pwszBuff,
+        int cchBuff,
+        uint wFlags);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetKeyboardState(byte[] lpKeyState);
+
+    private const uint MAPVK_VK_TO_VSC = 0x00;
+
+    public string GetKeyByCode(int vkCode)
+    {
+        var keyState = new byte[256];
+        GetKeyboardState(keyState);
+
+        uint scanCode = (uint)MapVirtualKey((uint)vkCode, MAPVK_VK_TO_VSC);
+        var stringBuilder = new StringBuilder(2);
+
+        int result = ToUnicode((uint)vkCode, scanCode, keyState, stringBuilder, stringBuilder.Capacity, 0);
+        if (result > 0)
+        {
+            return stringBuilder.ToString();
+        }
+
+        return ((Key)vkCode).ToString();
+    }
+
+    #endregion
 }

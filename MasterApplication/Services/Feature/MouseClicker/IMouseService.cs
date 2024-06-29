@@ -1,4 +1,5 @@
-﻿using MasterApplication.Models.Structs;
+﻿using MasterApplication.Models;
+using MasterApplication.Models.Structs;
 
 namespace MasterApplication.Services.Feature.MouseClicker;
 
@@ -7,7 +8,7 @@ namespace MasterApplication.Services.Feature.MouseClicker;
 /// </summary>
 public interface IMouseService
 {
-    event EventHandler<MouseCoordinate> MouseClicked;
+    event EventHandler<MouseButtonEventArgs> MouseButtonClicked;
 
     /// <summary>
     /// Moves the cursor to a specific position on the screen.

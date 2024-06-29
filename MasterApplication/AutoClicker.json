@@ -1,7 +1,13 @@
 {
   "Buying": {
-    "StartKeybind": "",
-    "StopKeybind": "",
+    "StartKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
+    "StopKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
     "Steps": [
       {
         "X": 1451,
@@ -31,8 +37,14 @@
     ]
   },
   "Selling": {
-    "StartKeybind": "",
-    "StopKeybind": "",
+    "StartKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
+    "StopKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
     "Steps": [
       {
         "X": 1451,
@@ -62,8 +74,14 @@
     ]
   },
   "Bidding": {
-    "StartKeybind": "",
-    "StopKeybind": "",
+    "StartKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
+    "StopKeybind": {
+      "KeyName": "A",
+      "KeyCode": 1
+    },
     "Steps": [
       {
         "X": 556,
@@ -99,6 +117,23 @@
         "X": 881,
         "Y": 247,
         "Sleep": 300
+      }
+    ]
+  },
+  "AutoClickerLoop": {
+    "StartKeybind": {
+      "KeyName": ".",
+      "KeyCode": 190
+    },
+    "StopKeybind": {
+      "KeyName": "-",
+      "KeyCode": 189
+    },
+    "Steps": [
+      {
+        "X": 1591,
+        "Y": 414,
+        "Sleep": 220
       }
     ]
   }

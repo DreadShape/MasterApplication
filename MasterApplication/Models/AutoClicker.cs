@@ -11,6 +11,8 @@ public class AutoClicker
 
     public Sequence Bidding { get; set; }
 
+    public Sequence AutoClickerLoop { get; set; }
+
     /// <summary>
     /// Creates an instance of a <see cref="AutoClicker"/>.
     /// </summary>
@@ -19,5 +21,6 @@ public class AutoClicker
         Buying = new();
         Selling = new();
         Bidding = new();
+        AutoClickerLoop = new();
     }
 }

@@ -7,8 +7,8 @@ namespace MasterApplication.Models;
 /// </summary>
 public class Sequence
 {
-    public string StartKeyBind { get; set; }
-    public string StopKeyBind { get; set; }
+    public Keybind StartKeybind { get; set; }
+    public Keybind StopKeybind { get; set; }
 
     public IList<AutoClickerSequence> Steps { get; set; }
 
@@ -17,8 +17,8 @@ public class Sequence
     /// </summary>
     public Sequence()
     {
-        StartKeyBind = string.Empty;
-        StopKeyBind = string.Empty;
+        StartKeybind = new();
+        StopKeybind = new();
         Steps = new List<AutoClickerSequence>();
     }
 }
