@@ -42,7 +42,7 @@ public static class Utils
                 process.Kill();
                 process.WaitForExit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

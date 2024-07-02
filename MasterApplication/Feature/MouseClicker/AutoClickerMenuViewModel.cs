@@ -112,7 +112,26 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     {
         AutoClickerStatus = AutoClickerStatus.READY;
         AutoClickerStatusForecolor = HexColors.Success;
-        _keyboardService.StartKeyboardHook();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //_keyboardService.StartKeyboardHook();
     }
 
     /// <summary>

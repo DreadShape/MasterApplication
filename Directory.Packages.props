@@ -24,6 +24,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
+    <PackageVersion Include="Emgu.CV" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.Bitmap" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
     <PackageVersion Include="MaterialDesignThemes" Version="5.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.0" />

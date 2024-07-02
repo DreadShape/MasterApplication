@@ -7,6 +7,7 @@ namespace MasterApplication.Models;
 /// </summary>
 public class Sequence
 {
+    public int Loops { get; set; }
     public Keybind StartKeybind { get; set; }
     public Keybind StopKeybind { get; set; }
 
