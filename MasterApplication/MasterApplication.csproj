@@ -36,6 +36,9 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Emgu.CV" />
+    <PackageReference Include="Emgu.CV.Bitmap" />
+    <PackageReference Include="Emgu.CV.runtime.windows" />
     <PackageReference Include="MaterialDesignThemes" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />

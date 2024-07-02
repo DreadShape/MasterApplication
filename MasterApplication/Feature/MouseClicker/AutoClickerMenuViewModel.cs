@@ -1,10 +1,16 @@
-﻿using System.IO;
+﻿using System.Drawing;
+using System.IO;
 using System.Text.Json;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+
+using MasterApplication.Helpers;
 using MasterApplication.Models;
 using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
@@ -16,6 +22,8 @@ using MasterApplication.UserControls;
 using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.Logging;
+
+using Point = System.Drawing.Point;
 
 namespace MasterApplication.Feature.MouseClicker;
 
@@ -62,6 +70,9 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     private DateTime _dateTime;
     private Sequence _currentSequence;
     private CancellationTokenSource? _cancellationTokenSource;
+    private readonly string _templateFolderPath = @"E:\Applications\Desktop\Images";
+    private readonly string _outputFolderPath = @"E:\Applications\Desktop\Images\Output";
+    private const double TEMPLATE_THRESHOLD = 0.65;
 
     #endregion
 
@@ -113,25 +124,10 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         AutoClickerStatus = AutoClickerStatus.READY;
         AutoClickerStatusForecolor = HexColors.Success;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //_keyboardService.StartKeyboardHook();
+        //MouseCoordinate test = GetScreenCoordinates("SellingAndBuyingTemplate.png");
+        //_mouseService.MoveCursorTo(test.X, test.Y);
+        //_mouseService.ClickLeftMouseButton();
+        _keyboardService.StartKeyboardHook();
     }
 
     /// <summary>
@@ -230,13 +226,13 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                 DateTime currentDateTime = DateTime.UtcNow;
                 double elapsedTime = (currentDateTime - _dateTime).TotalMilliseconds;
                 _dateTime = currentDateTime;
-                AutoClickerSequence sequence = new AutoClickerSequence()
+                /*AutoClickerSequence sequence = new AutoClickerSequence()
                 {
                     Sleep = Convert.ToInt32(elapsedTime),
                     X = e.Coordinate.X,
                     Y = e.Coordinate.Y
                 };
-                _newSequence.Add(sequence);
+                _newSequence.Add(sequence);*/
                 return;
 
             case MouseButton.Right:
@@ -273,22 +269,18 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
         if (vkCode == _currentSequence.StartKeybind.KeyCode)
         {
-            //It means there's an AutoClicker active if the cancellation token is not null.
+            //If the cancellation token is not null it means there's an AutoClicker active.
             if (_cancellationTokenSource != null)
                 return;
 
             AutoClickerStatus = AutoClickerStatus.RUNNING;
             AutoClickerStatusForecolor = HexColors.Error;
             _cancellationTokenSource = new();
-            StartAutoClicker(_currentSequence.Steps, _cancellationTokenSource.Token);
+            StartAutoClicker(_cancellationTokenSource.Token, _currentSequence.Steps, _currentSequence.Loops);
         }
 
         if (vkCode == _currentSequence.StopKeybind.KeyCode)
-        {
-            AutoClickerStatus = AutoClickerStatus.READY;
-            AutoClickerStatusForecolor = HexColors.Success;
             StopAutoClicker();
-        }
     }
 
     /// <summary>
@@ -403,26 +395,41 @@ public partial class AutoClickerMenuViewModel : ObservableObject
             _logger?.LogError("Could not load auto clicker configuration file. Exception: {ex}", ex);
         }
     }
- 
+
     /// <summary>
     /// Starts the AutoCliker.
     /// </summary>
+    /// <param name="token">Token to cancel the loop.</param>
     /// <param name="sequence">Sequence of steps to loop.</param>
-    public void StartAutoClicker(IList<AutoClickerSequence> sequence, CancellationToken token)
+    /// <param name="loops">Number of times to do the sequence.</param>
+    public void StartAutoClicker(CancellationToken token, IList<AutoClickerSequence> steps, int loops = 0)
     {
-        Task.Run(() =>
+        Task.Run(async () =>
         {
-            while (!token.IsCancellationRequested)
+            int currentLoop = loops;
+            MouseCoordinate mouseCoordinate;
+
+            while (!token.IsCancellationRequested && (currentLoop > 0 || loops == 0))
             {
-                foreach (AutoClickerSequence step in sequence)
+                if (token.IsCancellationRequested)
+                    return;
+
+                foreach (AutoClickerSequence step in steps)
                 {
-                    _mouseService.MoveCursorTo(step.X, step.Y);
-                    Thread.Sleep(step.Sleep);
+                    await Task.Delay(step.Sleep, token);
+                    if (step.MonitorForChange)
+                        await MonitorAroundMouseForColorChange(token);
+
+                    mouseCoordinate = GetScreenCoordinates(step.Template);
+                    _mouseService.MoveCursorTo(mouseCoordinate.X, mouseCoordinate.Y);
                     _mouseService.ClickLeftMouseButton();
 
                     if (token.IsCancellationRequested)
                         return;
                 }
+
+                if (loops > 0)
+                    currentLoop--;
             }
         }, token);
     }
@@ -435,6 +442,112 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         //StopAutoClicker
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource = null;
+
+        AutoClickerStatus = AutoClickerStatus.READY;
+        AutoClickerStatusForecolor = HexColors.Success;
+    }
+
+
+
+
+
+    
+
+    /// <summary>
+    /// Captures the screen and performs template matching to find a template image.
+    /// </summary>
+    /// <param name="templateToSearch">Name of the template image file to search for.</param>
+    /// <returns>Coordinates of the lower right corner of the matched area or 0,0 if there was an error finding the template.</returns>
+    private MouseCoordinate GetScreenCoordinates(string templateToSearch)
+    {
+        try
+        {
+            Image<Gray, byte> sourceImage = Utils.CaptureScreen();
+            Image<Gray, byte> templateImage = new Image<Gray, byte>(templateToSearch);
+
+            // Perform template matching
+            using (Image<Gray, float> resultImage = sourceImage.MatchTemplate(templateImage, TemplateMatchingType.CcoeffNormed))
+            {
+                double[] minValues, maxValues;
+                Point[] minLocations, maxLocations;
+
+                resultImage.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
+
+                double maxValue = maxValues[0];
+                Point maxLocation = maxLocations[0];
+
+                if (maxValue >= TEMPLATE_THRESHOLD)
+                {
+                    // Define a rectangle around the matched area
+                    Rectangle matchRect = new Rectangle(maxLocation, templateImage.Size);
+
+                    // Draw a rectangle around the matched area on the source image
+                    sourceImage.Draw(matchRect, new Gray(255), 2);
+
+                    // Save the source image with the drawn rectangle (for debugging purposes)
+                    //string fileName = $"{maxValue.ToString("F2")}_{Path.GetFileName(templateToSearch)}";
+                    //sourceImage.Save(Path.Combine(_outputFolderPath, fileName));
+
+                    // Calculate the coordinates of the lower right corner of the matched area -8 as a buffer to not be directly in the corner
+                    int matchLowerRightX = matchRect.X + matchRect.Width - 8;
+                    int matchLowerRightY = matchRect.Y + matchRect.Height - 8;
+
+                    // Return the coordinates as a MouseCoordinate struct
+                    return new MouseCoordinate(matchLowerRightX, matchLowerRightY);
+                }
+
+                _logger?.LogWarning("Template searching result below threshold, could not find the right coordinates. Result: '{value}/{threshold}'", maxValue.ToString("F2"), TEMPLATE_THRESHOLD);
+                string fileName = $"{maxValue.ToString("F2")}_template_not_found_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.png";
+                sourceImage.Save(Path.Combine(_outputFolderPath, fileName));
+                return new MouseCoordinate(0,0);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError("Could not analyze images. Exception: {ex}", ex);
+            return new MouseCoordinate(0, 0);
+        }
+    }
+
+    /// <summary>
+    /// Monitors the screen around the current mouse position for changes in color intensity.
+    /// </summary>
+    /// <param name="token">Cancellation token to stop monitoring.</param>
+    /// <returns></returns>
+    public async Task MonitorAroundMouseForColorChange(CancellationToken token)
+    {
+        Image<Gray, byte>? previousScreenshot = null;
+
+        while (!token.IsCancellationRequested)
+        {
+            // Get the current mouse position
+            var mousePos = _mouseService.GetMousePos();
+            int captureRadius = 50;
+            int captureX = mousePos.X - captureRadius;
+            int captureY = mousePos.Y - captureRadius;
+            int captureWidth = captureRadius * 2;
+            int captureHeight = captureRadius * 2;
+
+            // Capture the screen around the mouse position in grayscale
+            Image<Gray, byte> screenshot = Utils.CaptureScreen(captureX, captureY, captureWidth, captureHeight);
+            //Save image for debugging purposes
+            //string fileName = $"mouse_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.png";
+            //screenshot.Save(Path.Combine(_outputFolderPath, fileName));
+
+            if (previousScreenshot != null)
+            {
+                // Check for changes in intensity
+                bool hasChanged = Utils.DetectChange(previousScreenshot, screenshot);
+
+                if (hasChanged)
+                    return;
+            }
+
+            previousScreenshot = screenshot;
+
+            // Wait for 500ms before taking the next screenshot
+            await Task.Delay(500, token);
+        }
     }
 
     #endregion
