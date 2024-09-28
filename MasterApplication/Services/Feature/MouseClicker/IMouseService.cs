@@ -11,30 +11,36 @@ public interface IMouseService
     event EventHandler<MouseButtonEventArgs> MouseButtonClicked;
 
     /// <summary>
-    /// Moves the cursor to a specific position on the screen.
+    /// Moves the mouse cursor to the specified coordinates.
     /// </summary>
-    /// <param name="x">The x-coordinate of the screen.</param>
-    /// <param name="y">The y-coordinate of the screen.</param>
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the one or both of the mouse coordinates are negative values.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the mouse cannot move to the specified coordinates.</exception>
     void MoveCursorTo(int x, int y);
 
     /// <summary>
-    /// Simulates a left mouse click.
+    /// Clicks the left click mouse button on the current cursor's position.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the mouse cannot click the button on the current position.</exception>
     void ClickLeftMouseButton();
 
     /// <summary>
-    /// Gets the current position of the mouse cursor.
+    /// Gets the current mouse position as a <see cref="MouseCoordinate"/> struct.
     /// </summary>
-    /// <returns>The current position of the mouse cursor as a <see cref="MouseCoordinate"/>.</returns>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">Thrown when it fails to get the mouse position.</exception>
     MouseCoordinate GetMousePos();
 
     /// <summary>
-    /// Intercepts the mouse clicks.
+    /// Hooks to the mouse to be able to use the click buttons.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call the method again while already being hooked.</exception>
     void StartMouseHook();
 
     /// <summary>
-    /// Stops the intercept.
+    /// Unhooks from the mouse.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call this method while not being hooked.</exception>
     void StopMouseHook();
 }

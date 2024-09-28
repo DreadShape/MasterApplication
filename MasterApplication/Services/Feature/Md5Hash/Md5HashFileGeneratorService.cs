@@ -9,10 +9,15 @@ namespace MasterApplication.Services.Feature.Md5Hash;
 public class Md5HashFileGeneratorService : IMd5HashFileGeneratorService
 {
     /// <summary>
-    /// Calculates the MD5 hash of a file.
+    /// Calculates the MD5 hash of a specified file.
     /// </summary>
-    /// <param name="filePath">Path to the file to calculate the MD5 hash.</param>
-    /// <returns>The Md5 hash of that file.</returns>
+    /// <param name="filePath">The path to the file for which the MD5 hash will be calculated.</param>
+    /// <returns>The MD5 hash of the file as a hexadecimal string.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="filePath"/> is null or an empty string.</exception>
+    /// <exception cref="FileNotFoundException">Thrown when the file at the specified <paramref name="filePath"/> does not exist.</exception>
+    /// <exception cref="UnauthorizedAccessException">Thrown when access to the file is denied due to insufficient permissions.</exception>
+    /// <exception cref="IOException">Thrown when an I/O error occurs, such as when the file is currently in use.</exception>
+    /// <exception cref="Exception">Thrown for any unexpected errors that occur during the hash calculation process.</exception>
     public string CalculateMd5Hash(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))

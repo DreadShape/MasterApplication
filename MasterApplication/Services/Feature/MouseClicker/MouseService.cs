@@ -13,7 +13,7 @@ namespace MasterApplication.Services.Feature.MouseClicker;
 /// </summary>
 public class MouseService : IMouseService
 {
-    #region ClickLeftMouseButton
+    #region MoveAndClickLeftMouseButton
 
     [StructLayout(LayoutKind.Sequential)]
     private struct INPUT
@@ -48,8 +48,25 @@ public class MouseService : IMouseService
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint nInputs, [In] INPUT[] pInputs, int cbSize);
 
+    /// <summary>
+    /// Moves the mouse cursor to the specified coordinates.
+    /// </summary>
+    /// <param name="x">Horizontal coordinate.</param>
+    /// <param name="y">Vertical coordinate.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the one or both of the mouse coordinates are negative values.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the mouse cannot move to the specified coordinates.</exception>
     public void MoveCursorTo(int x, int y)
     {
+        // Check for negative coordinates
+        if (x < 0 || y < 0)
+            throw new ArgumentOutOfRangeException($"Coordinates cannot be negative. x: {x}, y: {y}");
+
+        // Scale the coordinates for absolute mouse movement
+        uint scaledX = (uint)((x * 65536.0) / SystemParameters.PrimaryScreenWidth);
+
+        //I don't know why but the scaledY always results in 1 less pixel on the screen, so we add it at the end of the calculation to adjust for that.
+        uint scaledY = ((uint)((y * 65536.0) / SystemParameters.PrimaryScreenHeight)) + 1;
+
         INPUT input = new INPUT
         {
             Type = INPUT_MOUSE,
@@ -57,17 +74,28 @@ public class MouseService : IMouseService
             {
                 Mouse = new MOUSEINPUT
                 {
-                    X = (x * 65535) / (int)SystemParameters.PrimaryScreenWidth,
-                    Y = (y * 65535) / (int)SystemParameters.PrimaryScreenHeight,
+                    X = (int)scaledX,
+                    Y = (int)scaledY,
                     DwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
                     DwExtraInfo = IntPtr.Zero
                 }
             }
         };
 
-        SendInput(1, new INPUT[] { input }, Marshal.SizeOf(typeof(INPUT)));
+        uint result = SendInput(1, new INPUT[] { input }, Marshal.SizeOf(typeof(INPUT)));
+
+        if (result == 0)
+        {
+            // If SendInput fails, retrieve the last error code
+            int errorCode = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException($"Failed to move cursor. Error Code: {errorCode}");
+        }
     }
 
+    /// <summary>
+    /// Clicks the left click mouse button on the current cursor's position.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the mouse cannot click the button on the current position.</exception>
     public void ClickLeftMouseButton()
     {
         INPUT[] inputs = new INPUT[2];
@@ -98,7 +126,14 @@ public class MouseService : IMouseService
             }
         };
 
-        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+        uint result = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+
+        if (result == 0)
+        {
+            // If SendInput fails, retrieve the last error code
+            int errorCode = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException($"Failed to simulate left mouse click. Error Code: {errorCode}");
+        }
     }
 
     #endregion
@@ -109,12 +144,18 @@ public class MouseService : IMouseService
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetCursorPos(out MouseCoordinate lpPoint);
 
+    /// <summary>
+    /// Gets the current mouse position as a <see cref="MouseCoordinate"/> struct.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException">Thrown when it fails to get the mouse position.</exception>
     public MouseCoordinate GetMousePos()
     {
         if (GetCursorPos(out MouseCoordinate lpPoint))
             return lpPoint;
 
-        return new MouseCoordinate(0, 0);
+        // Throw an exception if the API call fails
+        throw new InvalidOperationException("Failed to get mouse position.");
     }
 
     #endregion
@@ -136,21 +177,29 @@ public class MouseService : IMouseService
         _proc = HookCallback;
     }
 
+    /// <summary>
+    /// Hooks to the mouse to be able to use the click buttons.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call the method again while already being hooked.</exception>
     public void StartMouseHook()
     {
-        if (_hookID == IntPtr.Zero)
-        {
-            _hookID = SetHook(_proc);
-        }
+        if (_hookID != IntPtr.Zero)
+            throw new InvalidOperationException("Mouse hook is already active.");
+
+        _hookID = SetHook(_proc);
     }
 
+    /// <summary>
+    /// Unhooks from the mouse.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call this method while not being hooked.</exception>
     public void StopMouseHook()
     {
-        if (_hookID != IntPtr.Zero)
-        {
-            UnhookWindowsHookEx(_hookID);
-            _hookID = IntPtr.Zero;
-        }
+        if (_hookID == IntPtr.Zero)
+            throw new InvalidOperationException("Mouse hook is not currently active.");
+
+        UnhookWindowsHookEx(_hookID);
+        _hookID = IntPtr.Zero;
     }
 
     private static IntPtr SetHook(LowLevelMouseProc proc)
