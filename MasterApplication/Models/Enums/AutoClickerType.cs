@@ -5,8 +5,7 @@
 /// </summary>
 public enum AutoClickerType
 {
-    Buying,
-    Selling,
     Bidding,
+    Selling,
     AutoClicker
 }

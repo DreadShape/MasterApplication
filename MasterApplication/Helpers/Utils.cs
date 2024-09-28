@@ -105,7 +105,7 @@ public static class Utils
         double sumOfDifferences = CvInvoke.Sum(difference).V0;
 
         // Define a threshold to decide if there is a significant change
-        double changeThreshold = 1300.0; // Adjust based on your needs
+        double changeThreshold = 1200.0; // Adjust based on your needs
 
         return sumOfDifferences > changeThreshold;
     }

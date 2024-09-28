@@ -1,6 +1,6 @@
 {
   "Selling": {
-    "Loops": 8,
+    "Loops": 0,
     "StartKeybind": {
       "KeyName": ".",
       "KeyCode": 190
@@ -22,7 +22,7 @@
         "Y": 0,
         "Template": "E:\\Applications\\Desktop\\Images\\SellingAndBuyingTemplate.png",
         "MonitorForChange": false,
-        "Sleep": 600
+        "Sleep": 700
       },
       {
         "X": 0,
@@ -44,6 +44,68 @@
         "Template": "E:\\Applications\\Desktop\\Images\\ItemSoldTemplate.png",
         "MonitorForChange": true,
         "Sleep": 700
+      }
+    ]
+  },
+  "Bidding": {
+    "Loops": 0,
+    "StartKeybind": {
+      "KeyName": ".",
+      "KeyCode": 190
+    },
+    "StopKeybind": {
+      "KeyName": "-",
+      "KeyCode": 189
+    },
+    "Steps": [
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\BiddingItemTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 100
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\OrderingTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 1000
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\MoneyTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 10
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\ConfirmItemTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 10
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\ItemBoughtTemplate.png",
+        "MonitorForChange": true,
+        "Sleep": 700
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\CancelItemPurchaseTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 200
+      },
+      {
+        "X": 0,
+        "Y": 0,
+        "Template": "E:\\Applications\\Desktop\\Images\\CancelItemTemplate.png",
+        "MonitorForChange": false,
+        "Sleep": 200
       }
     ]
   }

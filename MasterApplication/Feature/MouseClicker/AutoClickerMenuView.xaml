@@ -10,7 +10,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="AutoClickerMenuView"
         Width="350"
-        Height="450"
+        Height="400"
         d:DataContext="{d:DesignInstance Type=local:AutoClickerMenuViewModel,
                                          IsDesignTimeCreatable=False}"
         Background="{StaticResource PrimaryDarkBackgroundColor}"
@@ -37,7 +37,6 @@
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
           <RowDefinition Height="2" />
           <RowDefinition />
         </Grid.RowDefinitions>
@@ -48,45 +47,31 @@
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <!-- Status -->
+        <!-- Loops -->
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Margin="10,10,15,5"
                    FontSize="16"
-                   Text="Status:" />
+                   Text="Loops:" />
 
         <TextBlock Grid.Row="0"
                    Grid.Column="1"
-                   Margin="0,10,0,5"
+                   Margin="0,10,0,10"
                    FontSize="16"
-                   Foreground="{Binding AutoClickerStatusForecolor, Converter={StaticResource HexToBrushConverter}}"
-                   Text="{Binding AutoClickerStatus}" />
+                   Text="{Binding AutoClickerCurrentSequenceLoops}" />
 
-        <!-- Sequence -->
+        <!-- Time -->
         <TextBlock Grid.Row="1"
                    Grid.Column="0"
-                   Margin="10,5,15,5"
+                   Margin="10,5,15,10"
                    FontSize="16"
-                   Text="Sequence:" />
+                   Text="Time:" />
 
         <TextBlock Grid.Row="1"
-                   Grid.Column="1"
-                   Margin="0,5,0,5"
-                   FontSize="16"
-                   Text="{Binding AutoClickerType}" />
-
-        <!-- Steps -->
-        <TextBlock Grid.Row="2"
-                   Grid.Column="0"
-                   Margin="10,5,15,5"
-                   FontSize="16"
-                   Text="Steps:" />
-
-        <TextBlock Grid.Row="2"
                    Grid.Column="1"
                    Margin="0,5,0,10"
                    FontSize="16"
-                   Text="{Binding AutoClickerCurrentSequenceSteps}" />
+                   Text="{Binding AutoClickerCurrentSequenceTime}" />
 
         <!-- KeyBindingsGrid -->
         <Grid Grid.Row="0"
@@ -121,7 +106,7 @@
           <!-- StopKeybind -->
           <TextBlock Grid.Row="1"
                      Grid.Column="0"
-                     Margin="0,5,5,5"
+                     Margin="0,5,5,10"
                      VerticalAlignment="Center"
                      FontSize="16"
                      Text="Stop Keybind:" />
@@ -135,7 +120,7 @@
         </Grid>
 
         <!-- UnderlineSeparator -->
-        <Canvas Grid.Row="3"
+        <Canvas Grid.Row="2"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
                 Margin="3,0,3,0"
@@ -144,7 +129,8 @@
         <!-- OptionsSecondGrid -->
         <Grid Grid.Row="4"
               Grid.Column="0"
-              Grid.ColumnSpan="3">
+              Grid.ColumnSpan="3"
+              Margin="0,10,0,0">
 
           <Grid.RowDefinitions>
             <RowDefinition />
@@ -161,8 +147,9 @@
           <!-- SequenceComboBox -->
           <ComboBox Grid.Row="0"
                     Grid.Column="0"
-                    Margin="5,10,5,10"
-                    materialDesign:HintAssist.Hint="Sequence"
+                    Grid.ColumnSpan="2"
+                    Margin="5,0,5,0"
+                    materialDesign:HintAssist.Hint="Sequence to loop"
                     ItemsSource="{Binding Source={StaticResource AutoClickerTypeEnumProvider}}"
                     SelectedItem="{Binding AutoClickerType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     Style="{StaticResource BiggerFontComboBox}">
@@ -173,18 +160,10 @@
             </i:Interaction.Triggers>
           </ComboBox>
 
-          <!-- CreateSequence -->
-          <Button Grid.Row="0"
-                  Grid.Column="1"
-                  Margin="5,10,5,10"
-                  Command="{Binding CreateSequenceCommand}"
-                  Content="Create Sequence"
-                  Style="{StaticResource BiggerDarkButtons}" />
-
           <!-- SetStartKeybind -->
           <Button Grid.Row="1"
                   Grid.Column="0"
-                  Margin="5,10,5,10"
+                  Margin="5,0,5,0"
                   Command="{Binding SetKeybindCommand}"
                   CommandParameter="Start"
                   Content="Start Keybind"
@@ -193,7 +172,7 @@
           <!-- SetStopKeybind -->
           <Button Grid.Row="1"
                   Grid.Column="1"
-                  Margin="5,10,5,10"
+                  Margin="5,0,5,0"
                   Command="{Binding SetKeybindCommand}"
                   CommandParameter="Stop"
                   Content="Stop Keybind"
@@ -203,33 +182,22 @@
           <Button Grid.Row="2"
                   Grid.Column="0"
                   Grid.ColumnSpan="2"
-                  Margin="5,10,5,10"
+                  Margin="5,0,5,0"
                   Command="{Binding StartAutoClickerCommand}"
                   Content="Start AutoClicker"
                   Style="{StaticResource BiggerDarkButtons}" />
 
-          <!-- InstructionsGrid -->
-          <Grid Grid.Row="3"
-                Grid.Column="0"
-                Grid.ColumnSpan="2">
-
-            <Grid.RowDefinitions>
-              <RowDefinition Height="2" />
-              <RowDefinition />
-            </Grid.RowDefinitions>
-
-            <!-- UnderlineSeparator -->
-            <Canvas Grid.Row="0"
-                    Margin="3,0,3,0"
-                    Background="{StaticResource PrimaryLightBackgroundColor}" />
-
-            <!-- Instructions -->
-            <TextBlock Grid.Row="1"
-                       Margin="5,10,5,10"
-                       FontSize="14"
-                       Text="{Binding AutoClickerInstructions}"
-                       TextWrapping="Wrap" />
-          </Grid>
+          <!-- Status -->
+          <TextBlock Grid.Row="3"
+                     Grid.Column="0"
+                     Grid.ColumnSpan="2"
+                     Margin="0,0,0,5"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     FontSize="24"
+                     FontWeight="Bold"
+                     Foreground="{Binding AutoClickerStatusForecolor, Converter={StaticResource HexToBrushConverter}}"
+                     Text="{Binding AutoClickerStatus}" />
         </Grid>
       </Grid>
     </Border>

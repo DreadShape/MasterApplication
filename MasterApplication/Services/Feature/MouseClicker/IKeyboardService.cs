@@ -23,4 +23,10 @@ public interface IKeyboardService
     /// <param name="keyCode">Code of the key.</param>
     /// <returns>The name of the key pressed.</returns>
     string GetKeyByCode(int keyCode);
+
+    /// <summary>
+    /// Tells us if the keyboard hook is listening to key presses or not.
+    /// </summary>
+    /// <returns></returns>
+    bool IsKeyboardHookAttached();
 }

@@ -15,21 +15,39 @@ public class Md5HashFileGeneratorService : IMd5HashFileGeneratorService
     /// <returns>The Md5 hash of that file.</returns>
     public string CalculateMd5Hash(string filePath)
     {
-        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-            return $"File not found '{filePath}'";
+        if (string.IsNullOrEmpty(filePath))
+            throw new ArgumentNullException(nameof(filePath), "The file path cannot be null or empty.");
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("The specified file was not found.", filePath);
 
         string hash;
 
-        using (MD5? md5Generator = MD5.Create())
+        try
         {
-            using (FileStream? fileStream = File.OpenRead(filePath))
+            using (MD5? md5Generator = MD5.Create())
             {
-                // Compute the MD5 hash of the file bytes
-                byte[] hashBytes = md5Generator.ComputeHash(fileStream);
+                using (FileStream? fileStream = File.OpenRead(filePath))
+                {
+                    // Compute the MD5 hash of the file bytes
+                    byte[] hashBytes = md5Generator.ComputeHash(fileStream);
 
-                // Convert the byte array to a hexadecimal string
-                hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                    // Convert the byte array to a hexadecimal string
+                    hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                }
             }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new UnauthorizedAccessException($"Access to the file '{filePath}' is denied.", ex);
+        }
+        catch (IOException ex)
+        {
+            throw new IOException($"An I/O error occurred while reading the file '{filePath}'.", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An error occurred while calculating the MD5 hash.", ex);
         }
 
         return hash;

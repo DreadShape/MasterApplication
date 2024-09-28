@@ -1,6 +1,4 @@
-﻿using Castle.Core.Logging;
-
-using MasterApplication.Feature.YoutubeAudioDownloader;
+﻿using MasterApplication.Feature.YoutubeAudioDownloader;
 using MasterApplication.Services.Dialog;
 
 using Microsoft.Extensions.Logging;

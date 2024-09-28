@@ -10,6 +10,14 @@ namespace MasterApplication.Services.Feature.MouseClicker;
 /// </summary>
 public class KeyboardService : IKeyboardService
 {
+    private bool _isKeyboardHookListening;
+
+    public bool IsKeyboardHookListening
+    {
+        get { return _isKeyboardHookListening; }
+        private set { _isKeyboardHookListening = value; }
+    }
+
     private const int WH_KEYBOARD_LL = 13;
     private const int WM_KEYDOWN = 0x0100;
 
@@ -35,6 +43,7 @@ public class KeyboardService : IKeyboardService
 
         _hookID = SetHook(_proc);
         _isHooked = true;
+        IsKeyboardHookListening = true;
     }
 
     /// <summary>
@@ -47,6 +56,7 @@ public class KeyboardService : IKeyboardService
 
         UnhookWindowsHookEx(_hookID);
         _isHooked = false;
+        IsKeyboardHookListening = false;
     }
 
     private static IntPtr SetHook(LowLevelKeyboardProc proc)
@@ -126,6 +136,15 @@ public class KeyboardService : IKeyboardService
         }
 
         return ((Key)vkCode).ToString();
+    }
+
+    /// <summary>
+    /// Tells us if the keyboard hook is listening to key presses or not.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsKeyboardHookAttached()
+    {
+        return IsKeyboardHookListening;
     }
 
     #endregion

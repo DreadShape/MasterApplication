@@ -1,4 +1,11 @@
-﻿using MasterApplication.Services.Feature.Md5Hash;
+﻿using MasterApplication.Feature.Md5HashFileGenerator;
+using MasterApplication.Models;
+using MasterApplication.Services.Dialog;
+using MasterApplication.Services.Feature.Md5Hash;
+
+using MaterialDesignThemes.Wpf;
+
+using Microsoft.Extensions.Logging;
 
 namespace MasterApplication.Tests.Feature.Md5Hash;
 
@@ -6,29 +13,36 @@ namespace MasterApplication.Tests.Feature.Md5Hash;
 public partial class Md5HashFileGeneratorViewModelTests
 {
     [Fact]
-    public void SaveCalculatedHashesToFile_Execute_CalculatesMd5HashOfFile()
+    public void SaveCalculatedHashesToFileCommand_Execute_CalculatesMd5HashOfFile()
     {
-        // Create temporary file
+        //Arrange
+        //Necessary services for the viewModel
+        ILogger<Md5HashFileGeneratorViewModel> mockedLogger = Mock.Of<ILogger<Md5HashFileGeneratorViewModel>>();
+        Mock<IDialogService> mockedDialogService = new();
+        IMd5HashFileGeneratorService mockedMd5Service = Mock.Of<IMd5HashFileGeneratorService>();
+        ISnackbarMessageQueue mockedSnackbar = Mock.Of<ISnackbarMessageQueue>();
+
+        //ViewModel
+        Md5HashFileGeneratorViewModel sut = new(mockedLogger, mockedDialogService.Object, mockedMd5Service, mockedSnackbar);
+
+        //Necessary actions for the command to not fail such as having a file in the collection and returning a path from a dialog
         string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
-        string filePath = Path.Combine(executingDirectory, "test.txt");
-
-        // Create a StreamWriter to write to the file
-        using (StreamWriter writer = new(filePath))
+        string filePath = Path.Combine(executingDirectory, "hashes.txt");
+        mockedDialogService.Setup(x => x.ShowSaveFileDialog()).Returns(filePath);
+        Md5HashFile hashFile = new()
         {
-            // Write the text to the file
-            writer.WriteLine("hash test");
-        }
-
-        // Arrange
-        Md5HashFileGeneratorService sut = new();
+            Name = "test",
+            Hash = "test",
+        };
+        sut.Files.Add(hashFile);
 
         // Act
-        string hashResult = sut.CalculateMd5Hash(filePath);
+        sut.SaveCalculatedHashesToFileCommand.Execute(null);
 
         // Assert
-        Assert.Equal("fdaa3c0c77e0eee73a783f5ef8b8a4fc", hashResult);
+        Assert.True(File.Exists(filePath));
 
-        // Delete the temporary file
+        //Delete the temporary file
         if (File.Exists(filePath))
             File.Delete(filePath);
     }

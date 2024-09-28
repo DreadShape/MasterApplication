@@ -79,10 +79,11 @@
         <BookReview:BookReviewView x:Name="Feature_BookReview" />
       </TabItem>
 
-      <!-- BookReview -->
+      <!-- MouseClicker -->
       <TabItem Width="140"
                Height="100"
-               Padding="10,20,10,20">
+               Padding="10,20,10,20"
+               IsSelected="True">
         <TabItem.Header>
           <StackPanel>
             <materialDesign:PackIcon Width="32"

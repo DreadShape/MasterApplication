@@ -5,11 +5,9 @@
 /// </summary>
 public class AutoClicker
 {
-    public Sequence Buying { get; set; }
+    public Sequence Bidding { get; set; }
 
     public Sequence Selling { get; set; }
-
-    public Sequence Bidding { get; set; }
 
     public Sequence AutoClickerLoop { get; set; }
 
@@ -18,7 +16,6 @@ public class AutoClicker
     /// </summary>
     public AutoClicker()
     {
-        Buying = new();
         Selling = new();
         Bidding = new();
         AutoClickerLoop = new();
