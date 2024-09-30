@@ -10,21 +10,6 @@ namespace MasterApplication.Services.Feature.MouseClicker;
 /// </summary>
 public class KeyboardService : IKeyboardService
 {
-    private bool _isKeyboardHookListening;
-
-    public bool IsKeyboardHookListening
-    {
-        get { return _isKeyboardHookListening; }
-        private set { _isKeyboardHookListening = value; }
-    }
-
-    private const int WH_KEYBOARD_LL = 13;
-    private const int WM_KEYDOWN = 0x0100;
-
-    private readonly LowLevelKeyboardProc _proc;
-    private IntPtr _hookID = IntPtr.Zero;
-    private bool _isHooked;
-
     public event EventHandler<int>? KeyPressed;
 
     public KeyboardService()
@@ -32,31 +17,92 @@ public class KeyboardService : IKeyboardService
         _proc = HookCallback;
     }
 
-
-    /// <summary>
-    /// Hooks into the keyboard inputs to intercept them.
-    /// </summary>
-    public void StartKeyboardHook()
+    ~KeyboardService()
     {
-        if (_isHooked)
-            return;
+        StopKeyboardHook();
+    }
 
-        _hookID = SetHook(_proc);
-        _isHooked = true;
-        IsKeyboardHookListening = true;
+    #region GetKeyByCode
+
+    public string GetKeyByCode(int vkCode)
+    {
+        var keyState = new byte[256];
+        GetKeyboardState(keyState);
+
+        uint scanCode = (uint)MapVirtualKey((uint)vkCode, MAPVK_VK_TO_VSC);
+        var stringBuilder = new StringBuilder(2);
+
+        int result = ToUnicode((uint)vkCode, scanCode, keyState, stringBuilder, stringBuilder.Capacity, 0);
+        if (result > 0)
+        {
+            return stringBuilder.ToString();
+        }
+
+        return ((Key)vkCode).ToString();
+
+        //throw new InvalidOperationException($"Invalid key code. No key is assigned to '{vkCode}'.");
     }
 
     /// <summary>
-    /// Unhooks from the keyboard inputs.
+    /// Tells us if the keyboard hook is listening to key presses or not.
     /// </summary>
+    /// <returns></returns>
+    public bool IsKeyboardHookAttached()
+    {
+        return _isHooked;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern int MapVirtualKey(uint uCode, uint uMapType);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int ToUnicode(
+        uint wVirtKey,
+        uint wScanCode,
+        byte[] lpKeyState,
+        [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] StringBuilder pwszBuff,
+        int cchBuff,
+        uint wFlags);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetKeyboardState(byte[] lpKeyState);
+
+    #endregion
+
+    #region KeyboardHook
+
+    private const int WH_KEYBOARD_LL = 13;
+    private const int WM_KEYDOWN = 0x0100;
+    private const uint MAPVK_VK_TO_VSC = 0x00;
+
+    private readonly LowLevelKeyboardProc _proc;
+    private IntPtr _hookID = IntPtr.Zero;
+    private bool _isHooked;
+
+    /// <summary>
+    /// Hooks to the keyboard to be able to use the keys.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call the method again while already being hooked.</exception>
+    public void StartKeyboardHook()
+    {
+        if (_isHooked)
+            throw new InvalidOperationException("Keyboard hook is already active.");
+
+        _hookID = SetHook(_proc);
+        _isHooked = true;
+    }
+
+    /// <summary>
+    /// Hooks from the keyboard.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call this method while not being hooked.</exception>
     public void StopKeyboardHook()
     {
         if (!_isHooked)
-            return;
+            throw new InvalidOperationException("Keyboard hook is not currently active.");
 
         UnhookWindowsHookEx(_hookID);
         _isHooked = false;
-        IsKeyboardHookListening = false;
     }
 
     private static IntPtr SetHook(LowLevelKeyboardProc proc)
@@ -84,11 +130,6 @@ public class KeyboardService : IKeyboardService
         return CallNextHookEx(_hookID, nCode, wParam, lParam);
     }
 
-    ~KeyboardService()
-    {
-        StopKeyboardHook();
-    }
-
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
 
@@ -101,51 +142,6 @@ public class KeyboardService : IKeyboardService
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-    #region GetKeyByCode
-
-    [DllImport("user32.dll")]
-    private static extern int MapVirtualKey(uint uCode, uint uMapType);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern int ToUnicode(
-        uint wVirtKey,
-        uint wScanCode,
-        byte[] lpKeyState,
-        [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] StringBuilder pwszBuff,
-        int cchBuff,
-        uint wFlags);
-
-    [DllImport("user32.dll")]
-    private static extern bool GetKeyboardState(byte[] lpKeyState);
-
-    private const uint MAPVK_VK_TO_VSC = 0x00;
-
-    public string GetKeyByCode(int vkCode)
-    {
-        var keyState = new byte[256];
-        GetKeyboardState(keyState);
-
-        uint scanCode = (uint)MapVirtualKey((uint)vkCode, MAPVK_VK_TO_VSC);
-        var stringBuilder = new StringBuilder(2);
-
-        int result = ToUnicode((uint)vkCode, scanCode, keyState, stringBuilder, stringBuilder.Capacity, 0);
-        if (result > 0)
-        {
-            return stringBuilder.ToString();
-        }
-
-        return ((Key)vkCode).ToString();
-    }
-
-    /// <summary>
-    /// Tells us if the keyboard hook is listening to key presses or not.
-    /// </summary>
-    /// <returns></returns>
-    public bool IsKeyboardHookAttached()
-    {
-        return IsKeyboardHookListening;
-    }
 
     #endregion
 }

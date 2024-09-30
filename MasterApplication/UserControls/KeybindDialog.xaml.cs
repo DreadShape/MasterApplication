@@ -56,7 +56,7 @@ public partial class KeybindDialog : UserControl
     /// <param name="e"></param>
     private void UserControl_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        if (!IsVisible)
+        if (!IsVisible && !_keyboardService.IsKeyboardHookAttached())
             _keyboardService.StopKeyboardHook();
     }
 
@@ -65,6 +65,7 @@ public partial class KeybindDialog : UserControl
     /// </summary>
     ~KeybindDialog()
     {
-        _keyboardService?.StopKeyboardHook();
+        if (!_keyboardService.IsKeyboardHookAttached())
+            _keyboardService?.StopKeyboardHook();
     }
 }

@@ -17,7 +17,7 @@
     </Grid.RowDefinitions>
 
     <!-- Title -->
-    <Grid Grid.Row="0" Background="{StaticResource PrimaryDark}">
+    <Grid Grid.Row="0" Background="{StaticResource PrimaryDarkBackgroundColor}">
 
       <TextBlock Style="{StaticResource DialogTitle}" Text="Loading" />
     </Grid>
@@ -40,7 +40,7 @@
     <Button Grid.Row="3"
             Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
             Content="Cancelar"
-            Style="{StaticResource TabletPrimaryButton}">
+            Style="{StaticResource BiggerLightButtons}">
       <Button.CommandParameter>
         <system:Boolean>True</system:Boolean>
       </Button.CommandParameter>

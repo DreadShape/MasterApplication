@@ -1,15 +1,21 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Drawing.Imaging;
+using System.Drawing;
+using System.Windows;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Models.Messages;
 using MasterApplication.Models.Structs;
 using MasterApplication.Services.Dialog;
+using MasterApplication.UserControls;
 
 using MaterialDesignThemes.Wpf;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace MasterApplication.Feature.MouseClicker;
 
@@ -30,8 +36,8 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<BringT
     private readonly IDialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
 
-    private AutoClickerMenuView? _autoClickerMenuView;
-    private AutoClickerMenuViewModel? _autoClickerMenuViewModel;
+    private readonly AutoClickerMenuView _autoClickerMenuView;
+    private readonly AutoClickerMenuViewModel _autoClickerMenuViewModel;
 
     #endregion
 
@@ -55,6 +61,8 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<BringT
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         _autoClickerMenuView = new();
+        _autoClickerMenuViewModel = _serviceProvider.GetRequiredService<AutoClickerMenuViewModel>();
+        _autoClickerMenuView.DataContext = _autoClickerMenuViewModel;
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
     }
@@ -63,15 +71,31 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<BringT
 
     #region Commands
 
+    [RelayCommand]
+    private void OnTest()
+    {
+        // Capture the entire screen
+        /*Bitmap screenshot = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
+        using (Graphics g = Graphics.FromImage(screenshot))
+        {
+            g.CopyFromScreen(0, 0, 0, 0, screenshot.Size);
+        }
+
+        string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
+        string filePath = Path.Combine(executingDirectory, "test.png");
+        screenshot.Save(filePath, ImageFormat.Png);*/
+
+        // Show the selection overlay
+        ScreenShotSelection overlay = new();
+        overlay.ShowDialog();
+    }
+
     /// <summary>
     /// Opens the auto clicker menu with all it's options.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanOpenAutoClickerMenu))]
     private void OnOpenAutoClickerMenu()
     {
-        _autoClickerMenuView = new ();
-        _autoClickerMenuViewModel = _serviceProvider.GetRequiredService<AutoClickerMenuViewModel>();
-        _autoClickerMenuView.DataContext = _autoClickerMenuViewModel;
         _messenger.Send(new MinimizeWindowMessage());
         _autoClickerMenuView.Show();
         _autoClickerMenuView.Activate();
@@ -87,6 +111,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<BringT
     /// </summary>
     /// <returns>'True' if <see cref="AutoClickerMenuView"/> isn't visible, 'False' if it is.</returns>
     private bool CanOpenAutoClickerMenu() => _autoClickerMenuView != null && !_autoClickerMenuView.IsVisible;
+
     #endregion
 
     #region ErrorValidations

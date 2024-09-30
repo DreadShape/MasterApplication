@@ -10,32 +10,38 @@
              d:DesignHeight="450"
              d:DesignWidth="800"
              mc:Ignorable="d">
-  <Grid>
-    <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition />
-        </Grid.ColumnDefinitions>
+  <materialDesign:DialogHost DialogContentUniformCornerRadius="5"
+                             DialogTheme="Inherit"
+                             Identifier="AutoClickerMenuDialog">
+    <Grid>
+      <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
 
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
 
-        <!-- StartAutoClicker -->
-        <Button Grid.Row="1"
-                Grid.Column="0"
-                Width="180"
-                Margin="5,0,5,20"
-                Command="{Binding OpenAutoClickerMenuCommand}"
-                Content="Open Menu"
-                Style="{StaticResource BiggerLightButtons}" />
+          <Button Content="Test" Command="{Binding TestCommand}"></Button>
 
-      </Grid>
-    </materialDesign:Card>
+          <!-- OpenMenuButton -->
+          <!--<Button Grid.Row="1"
+              Grid.Column="0"
+              Width="180"
+              Margin="5,0,5,20"
+              Command="{Binding OpenAutoClickerMenuCommand}"
+              Content="Open Menu"
+              Style="{StaticResource BiggerLightButtons}" />-->
 
-    <!-- SnackBar -->
-    <materialDesign:Snackbar MessageQueue="{Binding SnackbarMessageQueue}" />
+        </Grid>
+      </materialDesign:Card>
 
-  </Grid>
+      <!-- SnackBar -->
+      <materialDesign:Snackbar MessageQueue="{Binding SnackbarMessageQueue}" />
+
+    </Grid>
+  </materialDesign:DialogHost>
 </UserControl>

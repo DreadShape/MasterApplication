@@ -148,7 +148,9 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         _time = TimeSpan.Zero;
         AutoClickerCurrentSequenceLoops = 0;
         _cancellationTokenSource?.Cancel();
-        _keyboardService.StopKeyboardHook();
+
+        if (_keyboardService.IsKeyboardHookAttached())
+            _keyboardService.StopKeyboardHook();
         _cancellationTokenSource = null;
         AutoClickerStatus = AutoClickerStatus.IDLE;
         AutoClickerStatusForecolor = HexColors.Success;
@@ -184,9 +186,6 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         SaveAutoClickerToFile();
     }
 
-    #endregion
-
-    #region CommandValidations
     #endregion
 
     #region PublicMethods

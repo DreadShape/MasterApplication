@@ -8,13 +8,15 @@ public interface IKeyboardService
     event EventHandler<int> KeyPressed;
 
     /// <summary>
-    /// Hooks into the keyboard inputs to intercept them.
+    /// Hooks to the keyboard to be able to use the keys.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call the method again while already being hooked.</exception>
     void StartKeyboardHook();
 
     /// <summary>
-    /// Unhooks from the keyboard inputs.
+    /// Hooks from the keyboard.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if you call this method while not being hooked.</exception>
     void StopKeyboardHook();
 
     /// <summary>
@@ -25,7 +27,7 @@ public interface IKeyboardService
     string GetKeyByCode(int keyCode);
 
     /// <summary>
-    /// Tells us if the keyboard hook is listening to key presses or not.
+    /// Returns if the keyboard hook is listening to key presses or not.
     /// </summary>
     /// <returns></returns>
     bool IsKeyboardHookAttached();

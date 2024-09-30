@@ -130,7 +130,7 @@
         <Grid Grid.Row="4"
               Grid.Column="0"
               Grid.ColumnSpan="3"
-              Margin="0,10,0,0">
+              Margin="0,0,0,0">
 
           <Grid.RowDefinitions>
             <RowDefinition />
@@ -144,8 +144,26 @@
             <ColumnDefinition />
           </Grid.ColumnDefinitions>
 
+          <!-- SetStartKeybind -->
+          <Button Grid.Row="0"
+                  Grid.Column="0"
+                  Margin="5,0,5,0"
+                  Command="{Binding SetKeybindCommand}"
+                  CommandParameter="Start"
+                  Content="Start Keybind"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- SetStopKeybind -->
+          <Button Grid.Row="0"
+                  Grid.Column="1"
+                  Margin="5,0,5,0"
+                  Command="{Binding SetKeybindCommand}"
+                  CommandParameter="Stop"
+                  Content="Stop Keybind"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
           <!-- SequenceComboBox -->
-          <ComboBox Grid.Row="0"
+          <ComboBox Grid.Row="1"
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
                     Margin="5,0,5,0"
@@ -159,24 +177,6 @@
               </i:EventTrigger>
             </i:Interaction.Triggers>
           </ComboBox>
-
-          <!-- SetStartKeybind -->
-          <Button Grid.Row="1"
-                  Grid.Column="0"
-                  Margin="5,0,5,0"
-                  Command="{Binding SetKeybindCommand}"
-                  CommandParameter="Start"
-                  Content="Start Keybind"
-                  Style="{StaticResource BiggerDarkButtons}" />
-
-          <!-- SetStopKeybind -->
-          <Button Grid.Row="1"
-                  Grid.Column="1"
-                  Margin="5,0,5,0"
-                  Command="{Binding SetKeybindCommand}"
-                  CommandParameter="Stop"
-                  Content="Stop Keybind"
-                  Style="{StaticResource BiggerDarkButtons}" />
 
           <!-- StartAutoClicker -->
           <Button Grid.Row="2"
