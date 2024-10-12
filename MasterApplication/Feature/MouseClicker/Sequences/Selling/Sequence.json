@@ -1,0 +1,19 @@
+{
+  "Name": "Selling",
+  "Templates": [
+    {
+      "ImagePath": "Feature\\MouseClicker\\Sequences\\Selling\\Images\\0.png",
+      "WhereToClickXCoordinate": 0,
+      "WhereToClickYCoordinate": 0,
+      "DelayBeforeClickingInMilliseconds": 100,
+      "MonitorForChange": false
+    },
+    {
+      "ImagePath": "Feature\\MouseClicker\\Sequences\\Selling\\Images\\1.png",
+      "WhereToClickXCoordinate": 0,
+      "WhereToClickYCoordinate": 0,
+      "DelayBeforeClickingInMilliseconds": 100,
+      "MonitorForChange": false
+    }
+  ]
+}

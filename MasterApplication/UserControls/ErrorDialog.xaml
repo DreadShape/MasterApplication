@@ -15,7 +15,7 @@
     </Grid.RowDefinitions>
 
     <!-- Title -->
-    <Grid Grid.Row="0" Background="{StaticResource Accent}">
+    <Grid Grid.Row="0" Background="{StaticResource PrimaryDarkBackgroundColor}">
 
       <TextBlock Style="{StaticResource DialogTitle}" Text="Error" />
     </Grid>
@@ -29,10 +29,11 @@
     <Button Grid.Row="2"
             Margin="20,0,20,20"
             HorizontalAlignment="Right"
+            IsDefault="True"
             VerticalAlignment="Bottom"
             Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
             Content="Accept"
-            Style="{StaticResource TabletPrimaryButton}">
+            Style="{StaticResource BiggerLightButtons}">
       <Button.CommandParameter>
         <system:Boolean>False</system:Boolean>
       </Button.CommandParameter>

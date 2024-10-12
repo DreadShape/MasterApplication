@@ -229,7 +229,8 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         if (vkCode == 27)
         {
             StopAutoClicker();
-            _mouseService.StopMouseHook();
+            if (_mouseService.IsMouseHookAttached())
+                _mouseService.StopMouseHook();
         }
 
         if (vkCode == _currentSequence.StartKeybind.KeyCode)
@@ -348,13 +349,13 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                 if (token.IsCancellationRequested)
                     return;
 
-                foreach (AutoClickerSequence step in steps)
+                /*foreach (AutoClickerSequence step in steps)
                 {
-                    await Task.Delay(step.Sleep, token);
+                    await Task.Delay(step.DelayBeforeClickingInMilliseconds, token);
                     if (step.MonitorForChange)
                         await MonitorAroundMouseForColorChange(token);
 
-                    mouseCoordinate = GetScreenCoordinates(step.Template);
+                    mouseCoordinate = GetScreenCoordinates(step.Base64Image);
                     if (mouseCoordinate.X == 0|| mouseCoordinate.Y == 0)
                         StopAutoClicker();
 
@@ -362,7 +363,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                         return;
 
                     //If we are bidding we have to move the mouse X up from the default corner to raise the price and now lower it.
-                    string fileName = Path.GetFileName(step.Template);
+                    string fileName = Path.GetFileName(step.Base64Image);
                     if (AutoClickerType == AutoClickerType.Bidding && fileName.Equals("moneyTemplate.png", StringComparison.OrdinalIgnoreCase))
                         mouseCoordinate.Y -= 20;
 
@@ -384,7 +385,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
                     if (token.IsCancellationRequested)
                         return;
-                }
+                }*/
 
                 AutoClickerCurrentSequenceLoops++;
             }

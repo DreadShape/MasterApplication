@@ -8,7 +8,7 @@ namespace MasterApplication.Services.Feature.MouseClicker;
 /// </summary>
 public interface IMouseService
 {
-    event EventHandler<MouseButtonEventArgs> MouseButtonClicked;
+    event EventHandler<AutoClickerMouseButtonEventArgs> MouseButtonClicked;
 
     /// <summary>
     /// Moves the mouse cursor to the specified coordinates.
@@ -43,4 +43,10 @@ public interface IMouseService
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if you call this method while not being hooked.</exception>
     void StopMouseHook();
+
+    /// <summary>
+    /// Tells us if the mouse is hooked.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsMouseHookAttached();
 }

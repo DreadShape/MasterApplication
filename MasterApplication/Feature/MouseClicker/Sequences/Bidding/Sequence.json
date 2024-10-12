@@ -1,0 +1,31 @@
+{
+  "Name": "Bidding",
+  "StartKeybind": {
+    "KeyName": ".",
+    "KeyCode": 190
+  },
+  "StopKeybind": {
+    "KeyName": "-",
+    "KeyCode": 189
+  },
+  "Templates": [
+    {
+      "ImagePath": "Feature\\MouseClicker\\Sequences\\Bidding\\Images\\0.png",
+      "ClickCoordinates": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "DelayBeforeClicking": 100,
+      "MonitorForChange": false
+    },
+    {
+      "ImagePath": "Feature\\MouseClicker\\Sequences\\Bidding\\Images\\1.png",
+      "ClickCoordinates": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "DelayBeforeClicking": 200,
+      "MonitorForChange": false
+    }
+  ]
+}

@@ -5,35 +5,81 @@
         xmlns:local="clr-namespace:MasterApplication.UserControls"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         Title="ScreenShotSelection"
         d:DesignHeight="450"
         d:DesignWidth="800"
         Background="Transparent"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        MouseLeftButtonUp="Window_MouseLeftButtonUp"
-        MouseMove="Window_MouseMove"
+        Topmost="True"
         WindowState="Maximized"
         WindowStyle="None"
         mc:Ignorable="d">
+  <materialDesign:DialogHost DialogContentUniformCornerRadius="5"
+                             DialogTheme="Inherit"
+                             Identifier="ScreenShotSelectionDialog">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition />
+      </Grid.RowDefinitions>
 
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition />
-    </Grid.RowDefinitions>
+      <Grid Grid.Row="0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition />
+          <ColumnDefinition />
+        </Grid.ColumnDefinitions>
 
-    <!-- Screenshot Image -->
-    <Image x:Name="ScreenshotImage" Stretch="Fill" />
+        <!-- Buttons -->
+        <!-- AcceptButton -->
+        <Button Grid.Row="0"
+                Grid.Column="0"
+                Width="100"
+                Height="40"
+                Margin="10,10,5,10"
+                HorizontalAlignment="Right"
+                Click="AcceptButton_Click"
+                Content="Accept"
+                Style="{StaticResource BiggerDarkButtons}">
+          <Button.CommandParameter>
+            <system:Boolean>True</system:Boolean>
+          </Button.CommandParameter>
+        </Button>
 
-    <!-- Semi-transparent overlay -->
-    <Canvas x:Name="OverlayCanvas" Background="#80000000">
-      
-      <!-- Selection Rectangle (placed outside the overlay) -->
-      <Rectangle x:Name="SelectionRectangle"
-                 Fill="Transparent"
-                 Stroke="DodgerBlue"
-                 StrokeThickness="2"
-                 Visibility="Collapsed" />
-    </Canvas>
+        <!-- RetryButton -->
+        <Button Grid.Row="0"
+                Grid.Column="1"
+                Width="100"
+                Height="40"
+                Margin="5,10,5,10"
+                HorizontalAlignment="Left"
+                Click="RetryButton_Click"
+                Content="Retry"
+                Style="{StaticResource BiggerSecondaryButtons}">
+          <Button.CommandParameter>
+            <system:Boolean>False</system:Boolean>
+          </Button.CommandParameter>
+        </Button>
 
-  </Grid>
+      </Grid>
+
+      <!-- ScreenshotImage -->
+      <Image x:Name="ScreenshotImage"
+             Grid.Row="1"
+             Grid.Column="0"
+             Grid.ColumnSpan="3"
+             Width="640"
+             Height="360"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             Stretch="Fill" />
+
+      <!-- Overlay Canvas for drawing shapes -->
+      <Canvas x:Name="ClickCanvas"
+              Grid.Row="1"
+              Grid.Column="0"
+              Grid.ColumnSpan="3"
+              IsHitTestVisible="False" />
+    </Grid>
+  </materialDesign:DialogHost>
 </Window>

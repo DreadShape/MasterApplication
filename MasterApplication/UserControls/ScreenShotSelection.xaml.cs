@@ -1,122 +1,130 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+
+using MasterApplication.Helpers;
+using MasterApplication.Models;
 
 namespace MasterApplication.UserControls;
 
+/// <summary>
+/// Interaction logic for ScreenShotSelection.xaml
+/// </summary>
 public partial class ScreenShotSelection : Window
 {
-    private System.Windows.Point _startPoint;
-    private bool _isSelecting = false;
+    public event EventHandler<AutoClickerTemplate>? OnSelectionAccepted;
 
-    public ScreenShotSelection()
+    private System.Windows.Point? _lastClickedPosition;
+    private const double TOLERANCE = 0.5;
+    private readonly AutoClickerTemplate _template;
+
+    public ScreenShotSelection(Bitmap screenshot)
     {
         InitializeComponent();
+        
+        // Convert Bitmap to BitmapImage
+        BitmapImage bitmapImage = new();
+        using (MemoryStream memoryStream = new())
+        {
+            // Save the bitmap to the MemoryStream in PNG format
+            screenshot.Save(memoryStream, ImageFormat.Png);
 
-        // Load screenshot into the Image control (for testing, you can load a sample image)
-        string executingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
-        string filePath = Path.Combine(executingDirectory, "test.png");
-        ScreenshotImage.Source = new BitmapImage(new Uri(filePath));
+            // Reset the stream position to the beginning
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            // Initialize the BitmapImage
+            bitmapImage.BeginInit();
+            bitmapImage.StreamSource = memoryStream;
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;  // CacheOption is important to hold the data after stream is closed
+            bitmapImage.EndInit();
+        }
+
+        // Set the ImageSource to the captured screenshot
+        ScreenshotImage.Source = bitmapImage;
+        ScreenshotImage.Width = bitmapImage.Width;
+        ScreenshotImage.Height = bitmapImage.Height;
+
+        _template = new();
+        _template.Image = Utils.BitmapToByteArray(screenshot);
+        _template.ClickCoordinates = new System.Windows.Point(bitmapImage.Width / 2, bitmapImage.Height / 2);
+    }
+
+    private void AcceptButton_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
+        OnSelectionAccepted?.Invoke(this, _template);
+        Close();
+    }
+
+    private void RetryButton_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
     }
 
     private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        _startPoint = e.GetPosition(this);
-        _isSelecting = true;
-        SelectionRectangle.Width = 0;
-        SelectionRectangle.Height = 0;
-        Canvas.SetLeft(SelectionRectangle, _startPoint.X);
-        Canvas.SetTop(SelectionRectangle, _startPoint.Y);
-        SelectionRectangle.Visibility = Visibility.Visible;
-    }
+        // Get the mouse click position relative to the Image control
+        System.Windows.Point clickPosition = e.GetPosition(ScreenshotImage);
 
-    private void Window_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-    {
-        if (!_isSelecting)
+        // Get the actual size of the image being displayed (accounting for Stretch)
+        var bitmapImage = ScreenshotImage.Source as BitmapImage;
+        if (bitmapImage == null)
             return;
 
-        _isSelecting = false;
-        //CaptureSelectedRegion();
+        // Calculate the displayed image size, taking Stretch into account
+        double imageDisplayWidth = ScreenshotImage.ActualWidth;
+        double imageDisplayHeight = ScreenshotImage.ActualHeight;
 
-        Canvas.SetLeft(SelectionRectangle, 0);
-        Canvas.SetTop(SelectionRectangle, 0);
-        SelectionRectangle.Visibility = Visibility.Collapsed;
-    }
+        // Calculate the offset of the image (because it's centered)
+        double offsetX = (ClickCanvas.ActualWidth - imageDisplayWidth) / 2;
+        double offsetY = (ClickCanvas.ActualHeight - imageDisplayHeight) / 2;
 
-    private void Window_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (!_isSelecting)
+        // Check if the click is within the bounds of the image
+        if (clickPosition.X < 0 || clickPosition.Y < 0 ||
+            clickPosition.X > imageDisplayWidth || clickPosition.Y > imageDisplayHeight)
             return;
 
-        System.Windows.Point currentPoint = e.GetPosition(this);
-
-        // Calculate the dimensions of the selection
-        double x = Math.Min(currentPoint.X, _startPoint.X);
-        double y = Math.Min(currentPoint.Y, _startPoint.Y);
-        double width = Math.Abs(currentPoint.X - _startPoint.X);
-        double height = Math.Abs(currentPoint.Y - _startPoint.Y);
-
-        // Adjust for the border thickness
-        double borderThickness = SelectionRectangle.StrokeThickness;
-
-        // Update the selection rectangle position and size, insetting for the border
-        Canvas.SetLeft(SelectionRectangle, x - (borderThickness+1) / 2);
-        Canvas.SetTop(SelectionRectangle, y - (borderThickness+1) / 2);
-        SelectionRectangle.Width = width + borderThickness+1;
-        SelectionRectangle.Height = height + borderThickness+1;
-
-        // Update the clipping region for the overlay
-        UpdateOverlayClip(x, y, width, height);
-    }
-
-    private void UpdateOverlayClip(double x, double y, double width, double height)
-    {
-        // Define the selected area as a RectangleGeometry
-        RectangleGeometry selectedRegion = new(new Rect(x, y, width, height));
-
-        // Define the entire screen area for clipping
-        RectangleGeometry fullRegion = new(new Rect(0, 0, OverlayCanvas.ActualWidth, OverlayCanvas.ActualHeight));
-
-        // Combine the full region and the selected region using Exclude (the area selected will be cut out)
-        CombinedGeometry overlayRegion = new(GeometryCombineMode.Exclude, fullRegion, selectedRegion);
-
-        // Apply the clip to the overlay canvas, leaving the selection rectangle intact
-        OverlayCanvas.Clip = overlayRegion;
-    }
-
-    private void CaptureSelectedRegion()
-    {
-        // Get the selection bounds
-        double left = Canvas.GetLeft(SelectionRectangle);
-        double top = Canvas.GetTop(SelectionRectangle);
-        double width = SelectionRectangle.Width;
-        double height = SelectionRectangle.Height;
-
-        // Convert the selected region to the screen coordinates
-        int screenX = (int)(left * (SystemParameters.PrimaryScreenWidth / ActualWidth));
-        int screenY = (int)(top * (SystemParameters.PrimaryScreenHeight / ActualHeight));
-        int screenWidth = (int)(width * (SystemParameters.PrimaryScreenWidth / ActualWidth));
-        int screenHeight = (int)(height * (SystemParameters.PrimaryScreenHeight / ActualHeight));
-
-        // Capture the selected region and save it
-        using (Bitmap bitmap = new Bitmap(screenWidth, screenHeight))
+        // Clear the canvas before adding a new circle
+        ClickCanvas.Children.Clear();
+        
+        // Define the circle (Ellipse)
+        Ellipse circle = new()
         {
-            using (Graphics g = Graphics.FromImage(bitmap))
-            {
-                g.CopyFromScreen(screenX, screenY, 0, 0, bitmap.Size);
-            }
+            Width = 20,
+            Height = 20,
+            Stroke = new SolidColorBrush(Colors.Red),
+            StrokeThickness = 2,
+            Fill = System.Windows.Media.Brushes.Transparent
+        };
 
-            // Save the selected region to a file
-            string filePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "selectedRegion.png");
-            bitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+        // Set the position of the circle on the canvas (centered on the click point)
+        double adjustedX = clickPosition.X + offsetX - (circle.Width / 2);
+        double adjustedY = clickPosition.Y + offsetY - (circle.Height / 2);
 
-            MessageBox.Show($"Screenshot saved to {filePath}");
-        }
+        // Set the circle position
+        Canvas.SetLeft(circle, adjustedX);
+        Canvas.SetTop(circle, adjustedY);
 
-        Close();
+        // Add the circle to the canvas
+        ClickCanvas.Children.Add(circle);
+
+        // Store the last clicked position
+        _lastClickedPosition = clickPosition;
+
+        // Update the template with the click coordinates
+        _template.ClickCoordinates = _lastClickedPosition.Value;
+    }
+
+    private bool IsSamePosition(System.Windows.Point newPosition, System.Windows.Point lastPosition)
+    {
+        return (Math.Abs(newPosition.X - lastPosition.X) < TOLERANCE) &&
+               (Math.Abs(newPosition.Y - lastPosition.Y) < TOLERANCE);
     }
 }

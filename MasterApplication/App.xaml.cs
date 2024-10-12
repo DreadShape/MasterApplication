@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System.Drawing.Imaging;
+using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using CommunityToolkit.Mvvm.Messaging;
@@ -13,6 +15,7 @@ using MasterApplication.Models.Messages;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
 using MasterApplication.Services.Feature.MouseClicker;
+using MasterApplication.UserControls;
 
 using MaterialDesignThemes.Wpf;
 
@@ -113,6 +116,7 @@ public partial class App : Application
 
             //Other
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<ScreenShotWindow>();
             services.AddSingleton<MainWindowViewModel>();
             services.AddSingleton<WeakReferenceMessenger>();
             services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());

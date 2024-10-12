@@ -7,6 +7,7 @@ using Emgu.CV.Structure;
 
 using Emgu.CV;
 using System.Drawing.Imaging;
+using System.Windows.Media.Imaging;
 
 namespace MasterApplication.Helpers;
 
@@ -108,5 +109,81 @@ public static class Utils
         double changeThreshold = 1200.0; // Adjust based on your needs
 
         return sumOfDifferences > changeThreshold;
+    }
+
+    /// <summary>
+    /// Transforms a <see cref="Bitmap"/> into a <see cref="BitmapImage"/>.
+    /// </summary>
+    /// <param name="bitmap"><see cref="Bitmap"/> to transform.</param>
+    /// <returns></returns>
+    public static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        {
+            // Save the bitmap to a memory stream in PNG format
+            bitmap.Save(memoryStream, ImageFormat.Png);
+            memoryStream.Position = 0; // Reset the stream position
+
+            // Create a BitmapImage from the memory stream
+            BitmapImage bitmapImage = new();
+            bitmapImage.BeginInit();
+            bitmapImage.StreamSource = memoryStream;
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            bitmapImage.EndInit();
+
+            return bitmapImage;
+        }
+    }
+
+    /// <summary>
+    /// Transforms a <see cref="Bitmap"/> into a <see cref="byte[]"/>.
+    /// </summary>
+    /// <param name="bitmap"><see cref="Bitmap"/> to transform.</param>
+    /// <returns></returns>
+    public static byte[] BitmapToByteArray(Bitmap bitmap)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        {
+            // Save the bitmap to the MemoryStream in PNG format
+            bitmap.Save(memoryStream, ImageFormat.Png);
+
+            // Return the byte array from the memory stream
+            return memoryStream.ToArray();
+        }
+    }
+
+    /// <summary>
+    /// Transforms a <see cref="byte[]"/> into a <see cref="Bitmap"/>.
+    /// </summary>
+    /// <param name="byteArray"><see cref="byte[]"/> to transform.</param>
+    /// <returns></returns>
+    public static Bitmap ByteArrayToBitmap(byte[] byteArray)
+    {
+        using (MemoryStream memoryStream = new MemoryStream(byteArray))
+        {
+            Bitmap bitmap = new Bitmap(memoryStream);
+            return bitmap;
+        }
+    }
+
+    /// <summary>
+    /// Transforms a <see cref="byte[]"/> into a <see cref="BitmapImage"/>.
+    /// </summary>
+    /// <param name="byteArray"><see cref="byte[]"/> to transform.</param>
+    /// <returns></returns>
+    public static BitmapImage ByteArrayToBitmapImage(byte[] imageData)
+    {
+        BitmapImage bitmapImage = new BitmapImage();
+
+        using (MemoryStream memoryStream = new MemoryStream(imageData))
+        {
+            bitmapImage.BeginInit();
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            bitmapImage.StreamSource = memoryStream;
+            bitmapImage.EndInit();
+            bitmapImage.Freeze(); // Freeze to make it cross-thread accessible
+        }
+
+        return bitmapImage;
     }
 }

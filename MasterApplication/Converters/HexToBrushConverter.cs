@@ -4,6 +4,9 @@ using System.Windows.Media;
 
 namespace MasterApplication.Converters;
 
+/// <summary>
+/// Converter of <see cref="string"/> hexadecimal color to <see cref="Brush"/>.
+/// </summary>
 class HexToBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

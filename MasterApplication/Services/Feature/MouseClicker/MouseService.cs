@@ -170,7 +170,7 @@ public class MouseService : IMouseService
     private readonly LowLevelMouseProc _proc;
     private IntPtr _hookID = IntPtr.Zero;
 
-    public event EventHandler<MouseButtonEventArgs>? MouseButtonClicked;
+    public event EventHandler<AutoClickerMouseButtonEventArgs>? MouseButtonClicked;
 
     public MouseService()
     {
@@ -200,6 +200,15 @@ public class MouseService : IMouseService
 
         UnhookWindowsHookEx(_hookID);
         _hookID = IntPtr.Zero;
+    }
+
+    /// <summary>
+    /// Tells us if the mouse is hooked.
+    /// </summary>
+    /// <returns></returns>
+    public bool IsMouseHookAttached()
+    {
+        return _hookID != 0;
     }
 
     private static IntPtr SetHook(LowLevelMouseProc proc)
@@ -238,7 +247,7 @@ public class MouseService : IMouseService
             {
                 MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                 MouseCoordinate coordinate = new MouseCoordinate(hookStruct.pt.X, hookStruct.pt.Y);
-                MouseButtonClicked?.Invoke(this, new MouseButtonEventArgs(button, coordinate));
+                MouseButtonClicked?.Invoke(this, new AutoClickerMouseButtonEventArgs(button, coordinate));
             }
         }
 

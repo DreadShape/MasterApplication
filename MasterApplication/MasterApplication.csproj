@@ -53,8 +53,22 @@
     <None Update="AutoClicker.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Feature\MouseClicker\Sequences\Selling\Sequence.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Feature\MouseClicker\Sequences\Bidding\Sequence.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="MasterApplication.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Feature\MouseClicker\Sequences\Bidding\Images\" />
+    <Folder Include="Feature\MouseClicker\Sequences\Selling\Images\" />
   </ItemGroup>
 </Project>
