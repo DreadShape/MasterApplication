@@ -199,7 +199,7 @@
                 <Button Grid.Row="0"
                         Margin="5,0,10,5"
                         VerticalAlignment="Center"
-                        Command="{Binding ChangeCoordinatesTemplateImageCommand}"
+                        Command="{Binding ChangeClickCoordinateTemplateImageCommand}"
                         Content="Change Click Coordinates"
                         Style="{StaticResource BiggerDarkButtons}" />
 
@@ -209,6 +209,8 @@
                          VerticalAlignment="Center"
                          materialDesign:HintAssist.Hint="Delay Before Clicking"
                          materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                         AcceptsReturn="False"
+                         IsEnabled="{Binding IsDelayBeforeClickingTextBoxEnabled}"
                          PreviewKeyDown="DelayBeforeClickingTextBox_PreviewKeyDown"
                          PreviewTextInput="DelayBeforeClickingTextBox_PreviewTextInput"
                          Style="{StaticResource BiggerFontOutlineTextBox}"
@@ -220,8 +222,9 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="2">
                 <Grid.ColumnDefinitions>
-                  <ColumnDefinition />
-                  <ColumnDefinition />
+                  <ColumnDefinition Width="37*" />
+                  <ColumnDefinition Width="7*" />
+                  <ColumnDefinition Width="30*" />
                 </Grid.ColumnDefinitions>
 
                 <!-- DeleteTemplateButton -->
@@ -233,6 +236,7 @@
 
                 <!-- SaveSequenceToFileButton -->
                 <Button Grid.Column="1"
+                        Grid.ColumnSpan="2"
                         Margin="5,13,10,5"
                         Command="{Binding SaveSequenceToFileCommand}"
                         Content="Save Sequence to File"

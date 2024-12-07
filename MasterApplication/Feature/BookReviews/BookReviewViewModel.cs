@@ -155,11 +155,11 @@ public partial class BookReviewViewModel : ObservableObject
             bookReview.Summary = $"TL;DR{Environment.NewLine}{Summary}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
 
             bookReview.ScoringSystem = $"My Scoring System{Environment.NewLine}{bookReview.ScoringSystem}{Environment.NewLine}{Environment.NewLine}";
-            bookReview.MainStory = $"{(IsLikedMainStory ? "&#x2713;" : "X")} - Main Story: {bookReview.MainStory}{Environment.NewLine}{Environment.NewLine}";
-            bookReview.SideStories = $"{(IsLikedSideStories ? "&#x2713;" : "X")} - Side Stories (if it applies): {bookReview.SideStories}{Environment.NewLine}{Environment.NewLine}";
-            bookReview.Characters = $"{(IsLikedCharacters ? "&#x2713;" : "X")} - Characters: {bookReview.Characters}{Environment.NewLine}{Environment.NewLine}";
-            bookReview.SettingsAndAmbiance = $"{(IsLikedSettingsAndAmbiance ? "&#x2713;" : "X")} - Setting/Ambiance: {bookReview.SettingsAndAmbiance}{Environment.NewLine}{Environment.NewLine}";
-            bookReview.Ending = $"{(IsLikedEnding ? "&#x2713;" : "X")} - Ending: {bookReview.Ending}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.MainStory = $"{(IsLikedMainStory ? "✓" : "X")} - Main Story: {bookReview.MainStory}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SideStories = $"{(IsLikedSideStories ? "✓" : "X")} - Side Stories (if it applies): {bookReview.SideStories}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Characters = $"{(IsLikedCharacters ? "✓" : "X")} - Characters: {bookReview.Characters}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.SettingsAndAmbiance = $"{(IsLikedSettingsAndAmbiance ? "✓" : "X")} - Setting/Ambiance: {bookReview.SettingsAndAmbiance}{Environment.NewLine}{Environment.NewLine}";
+            bookReview.Ending = $"{(IsLikedEnding ? "✓" : "X")} - Ending: {bookReview.Ending}{Environment.NewLine}{Environment.NewLine}{Environment.NewLine}";
 
             bookReview.ExtensiveReview = $"Extensive Review{Environment.NewLine}{bookReview.ExtensiveReview}";
         }
