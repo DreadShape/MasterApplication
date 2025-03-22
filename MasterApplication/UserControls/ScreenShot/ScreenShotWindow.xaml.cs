@@ -8,10 +8,11 @@ using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Helpers;
 using MasterApplication.Models;
+using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
 using MasterApplication.Services.Feature.MouseClicker;
 
-namespace MasterApplication.UserControls;
+namespace MasterApplication.UserControls.ScreenShot;
 
 /// <summary>
 /// Allows us to select a specific region of a screen shot.
@@ -45,25 +46,17 @@ public partial class ScreenShotWindow : Window
     }
 
     /// <summary>
-    /// When the form is initialized and rendered.
+    /// When the form is initialized and rendered. It creates a screenshot of the current screen.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void ScreenShotWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        // Capture the screen
-        Bitmap screenshot = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
-        using (Graphics g = Graphics.FromImage(screenshot))
-        {
-            g.CopyFromScreen(0, 0, 0, 0, screenshot.Size);
-        }
-
-        // Set the ImageSource to the captured screenshot
-        ScreenshotImage.Source = Utils.BitmapToBitmapImage(screenshot);
+        TakeScreenShot();
     }
 
     /// <summary>
-    /// Intercepts the keyboard key presses.
+    /// Intercepts the keyboard key presses. We only listen for the 'Esc' key to close the window.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -75,7 +68,7 @@ public partial class ScreenShotWindow : Window
     }
 
     /// <summary>
-    /// When the left click of the mouse is being held down.
+    /// When the left click of the mouse is being held down. To start cropping the selection of the screnshot taken.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -91,34 +84,37 @@ public partial class ScreenShotWindow : Window
     }
 
     /// <summary>
-    /// When the left click of the mouse is released.
+    /// When the left click of the mouse is released. Creates the selected crop section of the screenshot.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    /// <exception cref="NullReferenceException">Thrown if the user selection is null.</exception>
     private void Window_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (!_isSelecting)
             return;
 
         _isSelecting = false;
-        using (Bitmap selectedRegion = CaptureSelectedRegion())
+
+        Bitmap selectedRegion = CaptureSelectedRegion();
+        try
         {
             ScreenShotSelection selectionDialog = new(selectedRegion);
             selectionDialog.OnSelectionAccepted -= ScreenShotSelection_OnSelectionAccepted;
             selectionDialog.OnSelectionAccepted += ScreenShotSelection_OnSelectionAccepted;
+
+            ResetOverlay();
             selectionDialog.ShowDialog();
-
-            if (selectionDialog.DialogResult == null)
-                throw new NullReferenceException(nameof(selectionDialog));
-
             if (selectionDialog.DialogResult == false)
             {
-                CleanClose();
+                selectedRegion.Dispose();
                 return;
             }
 
             CleanClose();
+        }
+        finally
+        {
+            selectedRegion.Dispose();
         }
     }
 
@@ -194,8 +190,8 @@ public partial class ScreenShotWindow : Window
         // Get the selection bounds
         double left = Canvas.GetLeft(SelectionRectangle);
         double top = Canvas.GetTop(SelectionRectangle);
-        double width = SelectionRectangle.Width;
-        double height = SelectionRectangle.Height;
+        double width = SelectionRectangle.Width - (SelectionRectangle.StrokeThickness + 5);
+        double height = SelectionRectangle.Height - (SelectionRectangle.StrokeThickness + 2);
 
         // Convert the selected region to the screen coordinates
         int screenX = (int)(left * (SystemParameters.PrimaryScreenWidth / ActualWidth));
@@ -226,7 +222,40 @@ public partial class ScreenShotWindow : Window
         Canvas.SetLeft(SelectionRectangle, 0);
         Canvas.SetTop(SelectionRectangle, 0);
         SelectionRectangle.Visibility = Visibility.Collapsed;
-        _messengerService.Send(new BringToFrontWindowMessage());
+        _messengerService.Send(new WindowActionMessage(WindowAction.Maximize));
         Close();
+    }
+
+    /// <summary>
+    /// Takes a screenshot of the current screen.
+    /// </summary>
+    private void TakeScreenShot()
+    {
+        // Capture the screen
+        Bitmap screenshot = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
+        using (Graphics g = Graphics.FromImage(screenshot))
+        {
+            g.CopyFromScreen(0, 0, 0, 0, screenshot.Size);
+        }
+
+        // Set the ImageSource to the captured screenshot
+        ScreenshotImage.Source = Utils.BitmapToBitmapImage(screenshot);
+    }
+
+    /// <summary>
+    /// Resets the canvas to their original state.
+    /// </summary>
+    private void ResetOverlay()
+    {
+        OverlayCanvas.Clip = null; // Remove any previous clipping
+
+        // Reset selection rectangle
+        SelectionRectangle.Visibility = Visibility.Collapsed;
+        SelectionRectangle.Width = 0;
+        SelectionRectangle.Height = 0;
+        SelectionRectangle.StrokeThickness = 1; // Ensure stroke is back to default
+
+        //Remove the white selection border of the previous selection
+        ScreenshotImage.Source = null;
     }
 }

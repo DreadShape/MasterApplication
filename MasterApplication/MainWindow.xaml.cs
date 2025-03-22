@@ -1,6 +1,4 @@
-﻿using System.Windows.Input;
-
-using MasterApplication.Feature.BookReviews;
+﻿using MasterApplication.Feature.BookReviews;
 using MasterApplication.Feature.Md5HashFileGenerator;
 using MasterApplication.Feature.MouseClicker;
 using MasterApplication.Feature.YoutubeAudioDownloader;
@@ -24,7 +22,8 @@ public partial class MainWindow
     /// <param name="linkViewModel"><see cref="LinkView"/>'s view model.</param>
     /// <param name="bookReviewViewModel"><see cref="BookReviewView"/>'s view model.</param>
     /// <param name="mouseClickerViewModel"><see cref="MouseClickerView"/>'s view model.</param>
-    public MainWindow(MainWindowViewModel viewModel, 
+    public MainWindow(
+        MainWindowViewModel viewModel, 
         OtherViewModel otherViewModel, 
         Md5HashFileGeneratorViewModel md5HashFileGeneratorViewModel, 
         YoutubeAudioDownloaderViewModel youtubeAudioDownloaderViewModel,

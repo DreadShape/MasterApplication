@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-namespace MasterApplication
+namespace MasterApplication.Models
 {
     /// <summary>
-    /// Custom <see cref="ObservableCollection{T}"/> that takes in a delegate to notify that the collection has changed.
+    /// Custom <see cref="ObservableCollection{T}"/> that takes in a delegate to notify when an item inside the collection has changed.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class NotifyCanExecuteChangedObservableCollection<T> : ObservableCollection<T>

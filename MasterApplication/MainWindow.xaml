@@ -10,16 +10,16 @@
         Width="1280"
         Height="820"
         Closed="Window_Closed"
-        Topmost="False"
+        Topmost="True"
         Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d">
   <Grid>
-    <!-- Other Menu -->
+    <!-- MainMenuTabControl -->
     <TabControl materialDesign:NavigationRailAssist.ShowSelectionBackground="False"
                 Background="{StaticResource PrimaryDarkBackgroundColor}"
                 Style="{StaticResource MaterialDesignNavigationRailTabControl}">
 
-      <!-- MD5HashFileGenerator -->
+      <!-- OtherMenu -->
       <TabItem Width="120"
                Height="100"
                Padding="10,20,10,20">

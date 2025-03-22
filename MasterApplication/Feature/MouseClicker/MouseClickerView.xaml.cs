@@ -34,4 +34,29 @@ public partial class MouseClickerView : UserControl
             e.Handled = false; // Allow these keys
         }
     }
+
+    /// <summary>
+    /// Select the entire text and place the cursor at the end.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void TextBox_GotFocus(object sender, System.Windows.RoutedEventArgs e)
+    {
+        TextBox? textBox = sender as TextBox;
+
+        if (textBox != null) 
+        {
+            textBox.SelectAll();
+        }
+    }
+
+    /// <summary>
+    /// Makes it so that when I click on the text above the <see cref="CheckBox"/> it toggles it.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void StackPanel_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        ShowCoordinatesToggleButton.IsChecked = !ShowCoordinatesToggleButton.IsChecked;
+    }
 }

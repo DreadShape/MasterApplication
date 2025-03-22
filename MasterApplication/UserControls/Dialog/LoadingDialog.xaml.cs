@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace MasterApplication.UserControls;
+namespace MasterApplication.UserControls.Dialog;
 
 /// <summary>
 /// Interaction logic for LoadingDialog.xaml

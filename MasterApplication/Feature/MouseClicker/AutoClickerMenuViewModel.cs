@@ -19,6 +19,7 @@ using MasterApplication.Models.Structs;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.MouseClicker;
 using MasterApplication.UserControls;
+using MasterApplication.UserControls.Dialog;
 
 using MaterialDesignThemes.Wpf;
 
@@ -200,7 +201,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         StopAutoClicker();
         _mouseService.StopMouseHook();
         _keyboardService.StopKeyboardHook();
-        _messenger.Send(new BringToFrontWindowMessage());
+        _messenger.Send(new WindowActionMessage(WindowAction.Maximize));
     }
 
     #endregion

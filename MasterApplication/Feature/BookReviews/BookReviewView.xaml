@@ -50,14 +50,14 @@
           <Button Grid.Column="1"
                   Command="{Binding ClearFormCommand}"
                   Content="Clear Form"
-                  Style="{StaticResource BiggerDarkButtons}" />
+                  Style="{StaticResource BiggerSecondaryLightButtons}" />
 
           <!-- AcceptReview -->
           <Button Grid.Column="2"
                   HorizontalAlignment="Right"
                   Command="{Binding AcceptReviewCommand}"
                   Content="Accept Review"
-                  Style="{StaticResource BiggerSecondaryLightButtons}" />
+                  Style="{StaticResource BiggerLightButtons}" />
         </Grid>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">

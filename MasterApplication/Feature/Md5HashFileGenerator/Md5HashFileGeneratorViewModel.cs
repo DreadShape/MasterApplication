@@ -109,13 +109,13 @@ public partial class Md5HashFileGeneratorViewModel : ObservableObject
             foreach (Md5HashFile file in Files)
             {
                 // Write the text to the file
-                writer.WriteLine($"Nombre: {file.Name}");
-                writer.WriteLine($"MD5: {file.Hash}");
+                writer.WriteLine($"File Name: {file.Name}");
+                writer.WriteLine($"MD5 Hash: {file.Hash}");
                 writer.WriteLine();
             }
         }
 
-        _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at {savedLocation}.", Files.Count, fileSavePath);
+        _logger.LogInformation("Saved file with {numberOfHashes} item's hashes at '{savedLocation}'.", Files.Count, fileSavePath);
     }
 
     /// <summary>

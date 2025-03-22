@@ -41,6 +41,7 @@
             <ComboBox Grid.Column="0"
                       materialDesign:HintAssist.Hint="Sequence"
                       DisplayMemberPath="Name"
+                      IsEnabled="{Binding IsSequenceComboBoxEnabled}"
                       ItemsSource="{Binding AutoClickerSequences}"
                       SelectedItem="{Binding CurrentSequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       Style="{StaticResource BiggerFontComboBox}">
@@ -57,7 +58,7 @@
                     VerticalAlignment="Center"
                     Command="{Binding AddSequenceCommand}"
                     Content="Add"
-                    Style="{StaticResource BiggerDarkButtons}" />
+                    Style="{StaticResource BiggerLightButtons}" />
 
             <!-- DeleteSequenceButton -->
             <Button Grid.Column="2"
@@ -65,15 +66,15 @@
                     VerticalAlignment="Center"
                     Command="{Binding DeleteSequenceCommand}"
                     Content="Delete"
-                    Style="{StaticResource BiggerDarkButtons}" />
+                    Style="{StaticResource BiggerSecondaryLightButtons}" />
 
-            <!-- OpenMenuButton -->
+            <!-- OpenAutoClickerMenuButton -->
             <Button Grid.Column="3"
                     Width="180"
                     Margin="10,0,0,0"
                     Command="{Binding OpenAutoClickerMenuCommand}"
                     Content="Open Auto Clicker"
-                    Style="{StaticResource BiggerDarkButtons}" />
+                    Style="{StaticResource BiggerLightButtons}" />
           </Grid>
 
           <!-- TemplateSettingsCard -->
@@ -113,6 +114,7 @@
                   <ColumnDefinition Width="Auto" />
                   <ColumnDefinition />
                 </Grid.ColumnDefinitions>
+
                 <!-- TemplateImage -->
                 <Image Grid.Row="0"
                        Grid.Column="0"
@@ -172,20 +174,19 @@
 
                 <!-- ChangeTemplateButton -->
                 <Button Grid.Row="0"
-                        Margin="10,0,5,5"
+                        Margin="5,0,7,14"
                         VerticalAlignment="Center"
                         Command="{Binding ChangeTemplateImageCommand}"
                         Content="Change Current Template"
-                        Style="{StaticResource BiggerDarkButtons}"
-                        Visibility="{Binding IsChangeTemplateVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        Style="{StaticResource BiggerLightButtons}" />
 
                 <!-- AddTemplateButton -->
                 <Button Grid.Row="1"
-                        Margin="10,7,5,0"
+                        Margin="5,0,7,12"
                         VerticalAlignment="Center"
                         Command="{Binding AddTemplateImageCommand}"
                         Content="Add New Template"
-                        Style="{StaticResource BiggerDarkButtons}" />
+                        Style="{StaticResource BiggerLightButtons}" />
               </Grid>
 
               <!-- ClickCoordinatesAndDelayButtons -->
@@ -195,26 +196,53 @@
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition />
+                  <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
                 <!-- ChangeCoordinatesTemplateButton -->
                 <Button Grid.Row="0"
-                        Margin="5,0,10,5"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Margin="7,0,5,12"
                         VerticalAlignment="Center"
                         Command="{Binding ChangeClickCoordinateTemplateImageCommand}"
                         Content="Change Click Coordinates"
-                        Style="{StaticResource BiggerDarkButtons}" />
+                        Style="{StaticResource BiggerLightButtons}" />
 
                 <!-- DelayBeforeClickingTextBox -->
                 <TextBox Grid.Row="1"
-                         Margin="5,5,10,0"
+                         Grid.Column="0"
+                         Margin="7,0,5,12"
                          VerticalAlignment="Center"
-                         materialDesign:HintAssist.Hint="Delay Before Clicking"
+                         materialDesign:HintAssist.Hint="Clicking Delay"
                          materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
                          AcceptsReturn="False"
+                         GotFocus="TextBox_GotFocus"
                          IsEnabled="{Binding IsDelayBeforeClickingTextBoxEnabled}"
                          PreviewKeyDown="DelayBeforeClickingTextBox_PreviewKeyDown"
                          PreviewTextInput="DelayBeforeClickingTextBox_PreviewTextInput"
                          Style="{StaticResource BiggerFontOutlineTextBox}"
                          Text="{Binding DelayBeforeClicking}" />
+
+                <!-- ShowCoordinatesCheckbox -->
+                <StackPanel Grid.Row="1"
+                            Grid.Column="1"
+                            MouseDown="StackPanel_MouseDown"
+                            Orientation="Vertical"
+                            Visibility="{Binding IsShowCoordinatesToggleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                  <TextBlock Margin="10,0,10,5"
+                             HorizontalAlignment="Center"
+                             Cursor="Hand"
+                             Text="Show Coordinates" />
+
+                  <ToggleButton x:Name="ShowCoordinatesToggleButton"
+                                Command="{Binding ShowCoordinatesOnImageCommand}"
+                                CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                Style="{StaticResource MaterialDesignSwitchToggleButton}" />
+                </StackPanel>
               </Grid>
 
               <!-- DeleteImageAndSaveChangesToFileButtons -->
@@ -229,20 +257,19 @@
 
                 <!-- DeleteTemplateButton -->
                 <Button Grid.Column="0"
-                        Margin="10,13,5,5"
+                        Margin="5,0,7,0"
                         Command="{Binding DeleteTemplateImageCommand}"
                         Content="Delete Current Template"
-                        Style="{StaticResource BiggerDarkButtons}" />
+                        Style="{StaticResource BiggerSecondaryLightButtons}" />
 
                 <!-- SaveSequenceToFileButton -->
                 <Button Grid.Column="1"
                         Grid.ColumnSpan="2"
-                        Margin="5,13,10,5"
+                        Margin="7,0,5,0"
                         Command="{Binding SaveSequenceToFileCommand}"
                         Content="Save Sequence to File"
-                        Style="{StaticResource BiggerDarkButtons}" />
+                        Style="{StaticResource BiggerLightButtons}" />
               </Grid>
-
 
             </Grid>
           </materialDesign:Card>

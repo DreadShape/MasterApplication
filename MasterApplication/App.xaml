@@ -30,6 +30,7 @@
       <Converters:HexToBrushConverter x:Key="HexToBrushConverter" />
       <Converters:ByteArrayToBitmapImageConverter x:Key="ByteArrayToBitmapImageConverter" />
       <Converters:AddOneToIndexConverter x:Key="AddOneToIndexConverter" />
+      
     </ResourceDictionary>
   </Application.Resources>
 </Application>

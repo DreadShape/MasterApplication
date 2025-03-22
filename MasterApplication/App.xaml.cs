@@ -1,7 +1,5 @@
-﻿using System.Drawing.Imaging;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 using CommunityToolkit.Mvvm.Messaging;
@@ -16,6 +14,7 @@ using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
 using MasterApplication.Services.Feature.MouseClicker;
 using MasterApplication.UserControls;
+using MasterApplication.UserControls.ScreenShot;
 
 using MaterialDesignThemes.Wpf;
 
@@ -64,17 +63,25 @@ public partial class App : Application
         app.MainWindow = host.Services.GetRequiredService<MainWindow>();
         app.MainWindow.Visibility = Visibility.Visible;
 
-        // Register the message handler to minimize the window
+        // Register the message handler to show/minimize/maximize the window
         IMessenger? messenger = host.Services.GetRequiredService<IMessenger>();
-        messenger.Register<MinimizeWindowMessage>(app, (recipient, message) =>
+        messenger.Register<WindowActionMessage>(app, (recipient, message) =>
         {
-            app.MainWindow.WindowState = WindowState.Minimized;
-        });
-
-        messenger.Register<BringToFrontWindowMessage>(app, (recipient, message) =>
-        {
-            app.MainWindow.WindowState = WindowState.Normal;
-            app.MainWindow.Activate();
+            switch (message.WindowAction)
+            {
+                case Models.Enums.WindowAction.Minimize:
+                    app.MainWindow.WindowState = WindowState.Minimized;
+                    break;
+                case Models.Enums.WindowAction.Normal:
+                    app.MainWindow.WindowState = WindowState.Normal;
+                    break;
+                case Models.Enums.WindowAction.Maximize:
+                    app.MainWindow.WindowState = WindowState.Maximized;
+                    break;
+                default:
+                    app.MainWindow.WindowState = WindowState.Normal;
+                    break;
+            }
         });
 
         app.Run();

@@ -11,12 +11,12 @@ namespace MasterApplication.Converters;
 /// </summary>
 class ByteArrayToBitmapImageConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is byte[] bytes && bytes.Length > 0)
             return Utils.ByteArrayToBitmapImage(bytes);
 
-        return Array.Empty<byte>();
+        return null;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

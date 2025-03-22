@@ -8,9 +8,13 @@ using Emgu.CV.Structure;
 using Emgu.CV;
 using System.Drawing.Imaging;
 using System.Windows.Media.Imaging;
+using FontStyle = System.Drawing.FontStyle;
 
 namespace MasterApplication.Helpers;
 
+/// <summary>
+/// Static class witth various miscellaneous methods.
+/// </summary>
 public static class Utils
 {
     /// <summary>
@@ -20,12 +24,10 @@ public static class Utils
     /// <returns>The normalized text.</returns>
     public static string NormalizeFileName(string input)
     {
-        // Replace invalid file characters with underscores
         char[] invalidChars = Path.GetInvalidFileNameChars();
         foreach (char invalidChar in invalidChars)
             input = input.Replace(invalidChar, '-');
 
-        // Remove leading and trailing whitespaces
         input = input.Trim();
 
         return input;
@@ -36,13 +38,10 @@ public static class Utils
     /// </summary>
     public static void CloseAllProcessesWithSameName()
     {
-        // Get the current process
         string currentProcess = Process.GetCurrentProcess().ProcessName;
 
-        // Get all processes with the same name
         Process[] processes = Process.GetProcessesByName(currentProcess);
 
-        // Iterate through all processes
         foreach (Process process in processes)
         {
             try
@@ -67,24 +66,17 @@ public static class Utils
     /// <returns>An Emgu CV Image of type <see cref="Image{Gray, byte}"/>.</returns>
     public static Image<Gray, byte> CaptureScreen(int? x = null, int? y = null, int? width = null, int? height = null)
     {
-        // Get the bounds of the capture area
         int captureX = x ?? 0;
         int captureY = y ?? 0;
         int captureWidth = width ?? (int)SystemParameters.PrimaryScreenWidth;
         int captureHeight = height ?? (int)SystemParameters.PrimaryScreenHeight;
-        Rectangle bounds = new Rectangle(captureX, captureY, captureWidth, captureHeight);
+        Rectangle bounds = new(captureX, captureY, captureWidth, captureHeight);
 
-        // Create a bitmap to store the screenshot
-        Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height, PixelFormat.Format32bppArgb);
+        Bitmap bitmap = new(bounds.Width, bounds.Height, PixelFormat.Format32bppArgb);
 
-        // Create a graphics object from the bitmap
         using (Graphics graphics = Graphics.FromImage(bitmap))
-        {
-            // Capture the screen and draw it onto the bitmap
             graphics.CopyFromScreen(bounds.X, bounds.Y, 0, 0, bounds.Size, CopyPixelOperation.SourceCopy);
-        }
 
-        // Convert the Bitmap to Emgu CV Image and return it
         Image<Gray, byte> emguImage = bitmap.ToImage<Bgr, byte>().Convert<Gray, byte>();
         bitmap.Dispose();
 
@@ -118,13 +110,11 @@ public static class Utils
     /// <returns></returns>
     public static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
     {
-        using (MemoryStream memoryStream = new MemoryStream())
+        using (MemoryStream memoryStream = new())
         {
-            // Save the bitmap to a memory stream in PNG format
             bitmap.Save(memoryStream, ImageFormat.Png);
-            memoryStream.Position = 0; // Reset the stream position
+            memoryStream.Position = 0;
 
-            // Create a BitmapImage from the memory stream
             BitmapImage bitmapImage = new();
             bitmapImage.BeginInit();
             bitmapImage.StreamSource = memoryStream;
@@ -142,12 +132,9 @@ public static class Utils
     /// <returns></returns>
     public static byte[] BitmapToByteArray(Bitmap bitmap)
     {
-        using (MemoryStream memoryStream = new MemoryStream())
+        using (MemoryStream memoryStream = new())
         {
-            // Save the bitmap to the MemoryStream in PNG format
             bitmap.Save(memoryStream, ImageFormat.Png);
-
-            // Return the byte array from the memory stream
             return memoryStream.ToArray();
         }
     }
@@ -159,9 +146,9 @@ public static class Utils
     /// <returns></returns>
     public static Bitmap ByteArrayToBitmap(byte[] byteArray)
     {
-        using (MemoryStream memoryStream = new MemoryStream(byteArray))
+        using (MemoryStream memoryStream = new(byteArray))
         {
-            Bitmap bitmap = new Bitmap(memoryStream);
+            Bitmap bitmap = new(memoryStream);
             return bitmap;
         }
     }
@@ -173,9 +160,9 @@ public static class Utils
     /// <returns></returns>
     public static BitmapImage ByteArrayToBitmapImage(byte[] imageData)
     {
-        BitmapImage bitmapImage = new BitmapImage();
+        BitmapImage bitmapImage = new();
 
-        using (MemoryStream memoryStream = new MemoryStream(imageData))
+        using (MemoryStream memoryStream = new(imageData))
         {
             bitmapImage.BeginInit();
             bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
@@ -185,5 +172,40 @@ public static class Utils
         }
 
         return bitmapImage;
+    }
+
+    /// <summary>
+    /// Generates a black image with a centered text of "Image Not Found".
+    /// </summary>
+    /// <param name="width">Width of the image.</param>
+    /// <param name="height">Height of the image.</param>
+    /// <returns>A <see cref="byte[]"/> of that image.</returns>
+    public static byte[] GenerateNotFoundImage(int width = 500, int height = 400)
+    {
+        using (Bitmap bmp = new Bitmap(width, height))
+        {
+            using (Graphics gfx = Graphics.FromImage(bmp))
+            {
+                gfx.Clear(Color.Black);
+
+                using (Font font = new Font("Arial", 13, FontStyle.Bold))
+                using (Brush textBrush = new SolidBrush(Color.White))
+                {
+                    string message = "Image Not Found";
+                    SizeF textSize = gfx.MeasureString(message, font);
+
+                    float x = (width - textSize.Width) / 2;
+                    float y = (height - textSize.Height) / 2;
+
+                    gfx.DrawString(message, font, textBrush, x, y);
+                }
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bmp.Save(ms, ImageFormat.Png);
+                return ms.ToArray();
+            }
+        }
     }
 }

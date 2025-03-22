@@ -3,7 +3,7 @@
 using MasterApplication.Models.Structs;
 using MasterApplication.Services.Feature.MouseClicker;
 
-namespace MasterApplication.UserControls;
+namespace MasterApplication.UserControls.Dialog;
 
 /// <summary>
 /// Interaction logic for ConfirmDialog.xaml

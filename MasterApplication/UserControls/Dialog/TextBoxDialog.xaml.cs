@@ -1,10 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 using MaterialDesignThemes.Wpf;
 
-namespace MasterApplication.UserControls;
+namespace MasterApplication.UserControls.Dialog;
 
 /// <summary>
 /// Interaction logic for TextBoxDialog.xaml
@@ -38,8 +37,6 @@ public partial class TextBoxDialog : UserControl
     private void AcceptButton_Click(object sender, RoutedEventArgs e)
     {
         SequenceName = TextBoxContent.Text;
-
-        // Now close the dialog manually
         DialogHost.CloseDialogCommand.Execute(false, (Button)sender);
     }
 
@@ -50,7 +47,6 @@ public partial class TextBoxDialog : UserControl
     /// <param name="e"></param>
     private void TextBoxContent_TextChanged(object sender, TextChangedEventArgs e)
     {
-        // Enable the Accept button only if the TextBox is not empty
         if (IsTextInInvalidNames() || string.IsNullOrEmpty(TextBoxContent.Text))
         {
             AcceptButton.IsEnabled = false;

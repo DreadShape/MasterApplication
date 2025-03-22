@@ -33,7 +33,7 @@
                 Margin="5,0,5,10"
                 Command="{Binding ClearCalculatedHashesCommand}"
                 Content="Clear Hashes"
-                Style="{StaticResource BiggerLightButtons}" />
+                Style="{StaticResource BiggerSecondaryLightButtons}" />
 
         <!-- SelectFilesButton -->
         <Button Grid.Row="0"

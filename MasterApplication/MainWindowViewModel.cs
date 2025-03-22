@@ -1,8 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿namespace MasterApplication;
 
-namespace MasterApplication;
-
-public partial class MainWindowViewModel : ObservableObject
+public class MainWindowViewModel
 {
-
 }

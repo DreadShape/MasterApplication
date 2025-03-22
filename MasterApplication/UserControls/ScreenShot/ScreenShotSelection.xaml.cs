@@ -11,7 +11,7 @@ using System.Windows.Shapes;
 using MasterApplication.Helpers;
 using MasterApplication.Models;
 
-namespace MasterApplication.UserControls;
+namespace MasterApplication.UserControls.ScreenShot;
 
 /// <summary>
 /// Interaction logic for ScreenShotSelection.xaml
