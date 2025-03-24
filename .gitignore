@@ -479,3 +479,5 @@ $RECYCLE.BIN/
 # Ignore live unit testing config
 *.lutconfig 
 /MasterApplication/ffmpeg.exe
+/MasterApplication.Tests/ffmpeg.exe
+/ffmpeg.exe

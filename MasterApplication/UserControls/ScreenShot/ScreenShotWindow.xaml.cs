@@ -12,6 +12,8 @@ using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
 using MasterApplication.Services.Feature.MouseClicker;
 
+using Point = System.Windows.Point;
+
 namespace MasterApplication.UserControls.ScreenShot;
 
 /// <summary>
@@ -21,7 +23,7 @@ public partial class ScreenShotWindow : Window
 {
     private readonly IKeyboardService _keyboardService;
     private readonly IMessenger _messengerService;
-    private System.Windows.Point _startPoint;
+    private Point _startPoint;
     private bool _isSelecting = false;
 
     /// <summary>
@@ -52,7 +54,12 @@ public partial class ScreenShotWindow : Window
     /// <param name="e"></param>
     private void ScreenShotWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        TakeScreenShot();
+        Task.Run(async () =>
+        {
+            //Slight delay to wait for the previous window to minimize.
+            await Task.Delay(100);
+            TakeScreenShot();
+        });
     }
 
     /// <summary>
@@ -103,10 +110,10 @@ public partial class ScreenShotWindow : Window
             selectionDialog.OnSelectionAccepted += ScreenShotSelection_OnSelectionAccepted;
 
             ResetOverlay();
-            selectionDialog.ShowDialog();
-            if (selectionDialog.DialogResult == false)
+            selectionDialog?.ShowDialog();
+            if (selectionDialog?.DialogResult == false)
             {
-                selectedRegion.Dispose();
+                selectedRegion?.Dispose();
                 return;
             }
 
@@ -114,7 +121,7 @@ public partial class ScreenShotWindow : Window
         }
         finally
         {
-            selectedRegion.Dispose();
+            selectedRegion?.Dispose();
         }
     }
 
@@ -138,7 +145,7 @@ public partial class ScreenShotWindow : Window
         if (!_isSelecting)
             return;
 
-        System.Windows.Point currentPoint = e.GetPosition(this);
+        Point currentPoint = e.GetPosition(this);
 
         // Calculate the dimensions of the selection
         double x = Math.Min(currentPoint.X, _startPoint.X);
@@ -216,13 +223,20 @@ public partial class ScreenShotWindow : Window
     /// </summary>
     private void CleanClose()
     {
+        ScreenShotSelection? selectionWindow = Application.Current.Windows.OfType<ScreenShotSelection>().FirstOrDefault();
+        if (selectionWindow != null)
+        {
+            selectionWindow.DialogResult = false;
+            selectionWindow.Close();
+        }
+
         if (_keyboardService.IsKeyboardHookAttached())
             _keyboardService.StopKeyboardHook();
 
         Canvas.SetLeft(SelectionRectangle, 0);
         Canvas.SetTop(SelectionRectangle, 0);
         SelectionRectangle.Visibility = Visibility.Collapsed;
-        _messengerService.Send(new WindowActionMessage(WindowAction.Maximize));
+        _messengerService.Send(new WindowActionMessage(WindowAction.Normal));
         Close();
     }
 
@@ -231,19 +245,17 @@ public partial class ScreenShotWindow : Window
     /// </summary>
     private void TakeScreenShot()
     {
-        // Capture the screen
         Bitmap screenshot = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
         using (Graphics g = Graphics.FromImage(screenshot))
         {
             g.CopyFromScreen(0, 0, 0, 0, screenshot.Size);
         }
 
-        // Set the ImageSource to the captured screenshot
         ScreenshotImage.Source = Utils.BitmapToBitmapImage(screenshot);
     }
 
     /// <summary>
-    /// Resets the canvas to their original state.
+    /// Resets the canvas to it's original state.
     /// </summary>
     private void ResetOverlay()
     {

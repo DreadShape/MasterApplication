@@ -26,4 +26,10 @@
     <Using Include="Moq" />
     <Using Include="Moq.AutoMock" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
 using MasterApplication.Models;
+using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
 using MasterApplication.Services.Dialog;
 using MasterApplication.UserControls.Dialog;
@@ -27,13 +28,18 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     public ObservableCollection<AutoClickerSequence> AutoClickerSequences { get; private set; }
 
     [ObservableProperty]
+    private bool _isSequenceComboBoxEnabled;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteSequenceCommand))]
-    private AutoClickerSequence _currentSequence;
+    private AutoClickerSequence? _currentSequence;
+
+    [ObservableProperty]
+    private bool _isSequenceDetailsVisible;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ChangeTemplateImageCommand))]
     [NotifyCanExecuteChangedFor(nameof(ChangeClickCoordinateTemplateImageCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SaveSequenceToFileCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteTemplateImageCommand))]
     private byte[]? _currentShowingImage;
 
@@ -49,39 +55,10 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private int _delayBeforeClicking;
 
     [ObservableProperty]
-    private bool _isSequenceDetailsVisible;
-
-    [ObservableProperty]
-    private bool _isChangeTemplateVisible;
-
-    [ObservableProperty]
     private bool _isDelayBeforeClickingTextBoxEnabled;
 
     [ObservableProperty]
-    private bool _isSequenceComboBoxEnabled;
-
-    [ObservableProperty]
     private bool _isShowCoordinatesToggleButtonVisible;
-
-    #endregion
-
-    #region PropertiesOnChangedMethods
-
-    /// <summary>
-    /// Gets called when the property changes value.
-    /// </summary>
-    /// <param name="oldValue">Old value of the property.</param>
-    /// <param name="newValue">New value of the property.</param>
-    partial void OnDelayBeforeClickingChanged(int oldValue, int newValue)
-    {
-        if (!CurrentSequence.Templates.Any())
-            return;
-
-        if (_lastShownSequence.Name.Equals(CurrentSequence.Name, StringComparison.OrdinalIgnoreCase))
-            _isUnsavedChanges = true;
-
-        CurrentSequence.Templates[CurrentTemplateImageIndex].ClickCoordinatesInterval = newValue;
-    }
 
     #endregion
 
@@ -93,10 +70,22 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private readonly ILogger _logger;
     private readonly IMessenger _messenger;
     private readonly IDialogHost _dialogHost;
+    private readonly ScreenShotWindow _screenShotWindow;
+    private bool _isChangingExistingTemplateImage = false;
 
-    private AutoClickerSequence _lastShownSequence = new();
-    private bool _isChangingTemplate = false;
+
+
+
+
+
+
+
+
+
+
+
     private bool _isUnsavedChanges = false;
+    
 
     #endregion
 
@@ -109,28 +98,18 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     /// <param name="messengerService"><see cref="IMessenger"/> to send/receive messenger from different parts of the application.</param>
     /// <param name="dialogHost"><see cref="IDialogHost"/> implementation to be able to show the material design dialog host.</param>
     /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
-    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue)
+    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue, ScreenShotWindow screenShotWindow)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dialogHost = dialogHost ?? throw new ArgumentNullException(nameof(dialogHost));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-        _messenger.Register(this);
+        //_messenger.Register(this);
         _messenger.Register<AutoClickerTemplate>(this, HandleAutoClickerTemplateMessage);
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
+        _screenShotWindow = screenShotWindow ?? throw new ArgumentNullException(nameof(screenShotWindow));
 
         AutoClickerSequences = new();
-        CurrentSequence = new();
-        CurrentTemplateImageIndex = 0;
-        NumberOfTemplateImages = 0;
-        DelayBeforeClicking = 0;
-        IsSequenceDetailsVisible = false;
-        IsShowCoordinatesToggleButtonVisible = false;
-        IsDelayBeforeClickingTextBoxEnabled = false;
-        IsChangeTemplateVisible = false;
-        CurrentShowingImage = null;
-        IsSequenceComboBoxEnabled = false;
-
         LoadAutoClickerSequences();
         LoadAllSequencesTemplateImagesFromFile();
     }
@@ -160,8 +139,6 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
                 return;
             }
         }*/
-
-        CurrentTemplateImageIndex = 0;
         ShowSequence();
     }
 
@@ -181,8 +158,6 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
 
         AutoClickerSequences.Add(autoClickerSequence);
         CurrentSequence = autoClickerSequence;
-        IsSequenceComboBoxEnabled = AutoClickerSequences.Any();
-        ShowSequence();
         NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
     }
 
@@ -192,107 +167,21 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     [RelayCommand(CanExecute = nameof(CanDeleteSequence))]
     private async Task OnDeleteSequence()
     {
-        ConfirmDialog confirmDialog = new($"Are you sure you want to delete the '{CurrentSequence.Name}' sequence?");
+        ConfirmDialog confirmDialog = new($"Are you sure you want to delete the '{CurrentSequence?.Name}' sequence?");
         if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteSequenceCanceled && isDeleteSequenceCanceled)
             return;
 
-        await DeleteSequenceFromFile();
-        AutoClickerSequences.Remove(CurrentSequence);
+        if (!DeleteSequenceFromFile())
+        {
+            ErrorDialog errorDialog = new($"Error trying to delete the sequence file. Check logs for more information.");
+            await _dialogHost.Show(errorDialog, DIALOG_IDENTIFIER);
+            return;
+        }
+
+        AutoClickerSequences.Remove(CurrentSequence!);
+        CurrentSequence = AutoClickerSequences.LastOrDefault();
         IsSequenceComboBoxEnabled = AutoClickerSequences.Any();
         NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
-    }
-
-    /// <summary>
-    /// Saves the current selected <see cref="AutoClickerSequence"/> to a file.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanDeleteOrChangeTemplateImage))]
-    private async Task OnSaveSequenceToFile()
-    {
-        ConfirmDialog confirmDialog = new($"Confirm saving '{CurrentSequence.Name}' sequence to file?");
-        if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteSequenceCanceled && isDeleteSequenceCanceled)
-            return;
-
-        /*if (await SaveSequenceAndImagesToFile())
-            return;*/
-    }
-
-    /// <summary>
-    /// Opens the <see cref="ScreenShotWindow"/> to let the user select a new region for a template.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanDeleteOrChangeTemplateImage))]
-    private async Task OnChangeTemplateImage()
-    {
-        _isChangingTemplate = true;
-        // Show the selection overlay
-        //IKeyboardService keyboardService = _serviceProvider.GetRequiredService<IKeyboardService>();
-        //ScreenShotWindow screenShotWindow = new(keyboardService, _messenger);
-        _messenger.Send(new WindowActionMessage(Models.Enums.WindowAction.Minimize));
-        await Task.Delay(170);
-        //screenShotWindow.ShowDialog();
-    }
-
-    /// <summary>
-    /// Opens the current template image to change the click coordinates.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanChangeClickCoordinateTemplateImage))]
-    private async Task OnChangeClickCoordinateTemplateImage()
-    {
-        
-    }
-
-    /// <summary>
-    /// Opens the <see cref="ScreenShotWindow"/> to let the user select a new region for a template.
-    /// </summary>
-    [RelayCommand]
-    private async Task OnAddTemplateImage()
-    {
-        _isChangingTemplate = false;
-        //IKeyboardService keyboardService = _serviceProvider.GetRequiredService<IKeyboardService>();
-        //ScreenShotWindow screenShotWindow = new(keyboardService, _messenger);
-        _messenger.Send(new WindowActionMessage(Models.Enums.WindowAction.Minimize));
-
-        //We wait 170ms for the application to minimize in the tray before taking the screenshot.
-        await Task.Delay(200);
-        //screenShotWindow.ShowDialog();
-    }
-
-    /// <summary>
-    /// Deletes the current template image from the sequence.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanDeleteOrChangeTemplateImage))]
-    private async Task OnDeleteTemplateImage()
-    {
-        ConfirmDialog confirmDialog = new($"Are you sure you want to delete the current template image?");
-        if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteTemplateImageCanceled && isDeleteTemplateImageCanceled)
-            return;
-
-        NumberOfTemplateImages--;
-        CurrentSequence.Templates?.RemoveAt(CurrentTemplateImageIndex);
-        if (CurrentTemplateImageIndex > 0)
-            CurrentTemplateImageIndex--;
-
-        ShowSequence();
-        _isUnsavedChanges = true;
-    }
-
-    /// <summary>
-    /// Shows the next image on the sequence.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanShowPreviousImageTemplate))]
-    private void OnPreviousTemplateImage()
-    {
-        CurrentTemplateImageIndex--;
-        ShowSequence();
-    }
-
-    /// <summary>
-    /// Shows the previous image on the sequence.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(CanShowNextImageTemplate))]
-    private void OnNextTemplateImage()
-    {
-        CurrentTemplateImageIndex++;
-        ShowSequence();
     }
 
     /// <summary>
@@ -308,6 +197,46 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     }
 
     /// <summary>
+    /// Shows the next image on the sequence.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanShowPreviousImageTemplate))]
+    private void OnPreviousTemplateImage()
+    {
+        CurrentTemplateImageIndex--;
+        ShowCurrentTemplateImage();
+    }
+
+    /// <summary>
+    /// Shows the previous image on the sequence.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanShowNextImageTemplate))]
+    private void OnNextTemplateImage()
+    {
+        CurrentTemplateImageIndex++;
+        ShowCurrentTemplateImage();
+    }
+
+    /// <summary>
+    /// Opens the <see cref="ScreenShotWindow"/> to let the user select a new region for a template.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanChangeTemplateImage))]
+    private void OnChangeTemplateImage()
+    {
+        _isChangingExistingTemplateImage = true;
+        _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
+        _screenShotWindow.Show();
+    }
+
+    /// <summary>
+    /// Opens the current template image to change the click coordinates.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanChangeClickCoordinateTemplateImage))]
+    private void OnChangeClickCoordinateTemplateImage()
+    {
+
+    }
+
+    /// <summary>
     /// Shows/hides the clicking coordinates on the current template image.
     /// </summary>
     /// <param name="showCoordinates">Flag to show/hide the coordinates on the template image.</param>
@@ -317,6 +246,69 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
         var test = showCoordinates;
     }
 
+    /// <summary>
+    /// Opens the <see cref="ScreenShotWindow"/> to let the user select a new region for a template.
+    /// </summary>
+    [RelayCommand]
+    private void OnAddTemplateImage()
+    {
+        _isChangingExistingTemplateImage = false;
+        _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
+        _screenShotWindow.ShowDialog();
+    }
+
+    /// <summary>
+    /// Deletes the current template image from the sequence.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanDeleteTemplateImage))]
+    private async Task OnDeleteTemplateImage()
+    {
+        ConfirmDialog confirmDialog = new($"Are you sure you want to delete the current template image?");
+        if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteTemplateImageCanceled && isDeleteTemplateImageCanceled)
+            return;
+
+        NumberOfTemplateImages--;
+        CurrentSequence?.Templates?.RemoveAt(CurrentTemplateImageIndex);
+        if (CurrentTemplateImageIndex > 0)
+            CurrentTemplateImageIndex--;
+
+        ShowCurrentTemplateImage();
+
+        if (CurrentSequence?.Templates?.Any() != true)
+            IsDelayBeforeClickingTextBoxEnabled = false;
+
+        NotifyCanExecuteChanged(ChangeTemplateImageCommand);
+        _isUnsavedChanges = true;
+    }
+
+    /// <summary>
+    /// Saves the current selected <see cref="AutoClickerSequence"/> to a file.
+    /// </summary>
+    [RelayCommand]
+    private async Task OnSaveSequenceToFile()
+    {
+        ConfirmDialog confirmDialog = new($"Confirm saving '{CurrentSequence?.Name}' sequence to file?");
+        if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteSequenceCanceled && isDeleteSequenceCanceled)
+            return;
+
+        /*if (await SaveSequenceAndImagesToFile())
+            return;*/
+    }
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     #endregion
 
     #region CommandValidations
@@ -324,15 +316,27 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     /// <summary>
     /// Enables or disables the "Open Menu" button on the UI based on if <see cref="AutoClickerMenuView"/> is visible or not.
     /// </summary>
-    /// <returns>'True' if <see cref="AutoClickerMenuView"/> isn't visible, 'False' if it is.</returns>
+    /// <returns><see cref="true"/> if <see cref="AutoClickerMenuView"/> isn't visible, <see cref="false"/> if it is.</returns>
     //private bool CanOpenAutoClickerMenu() => _autoClickerMenuView != null && !_autoClickerMenuView.IsVisible && AutoClickerSequences.Any();
     private bool CanOpenAutoClickerMenu() => CurrentSequence != null && CurrentSequence.Templates?.Any() == true;
+
+    /// <summary>
+    /// Enables or disables the "Change Template Image" button on the UI based on if there's a showing image.
+    /// </summary>
+    /// <returns><see cref="true"/> if there's a showing image, <see cref="false"/> if there isn't.</returns>
+    private bool CanChangeTemplateImage() => CurrentSequence?.Templates != null && CurrentSequence.Templates.Any();
+
+    /// <summary>
+    /// Enables or disables the "Delete Template Image" button on the UI based on if there's a showing image.
+    /// </summary>
+    /// <returns><see cref="true"/> if there's a showing image, <see cref="false"/> if there isn't.</returns>
+    private bool CanDeleteTemplateImage() => CurrentSequence?.Templates != null && CurrentSequence.Templates.Any();
 
     /// <summary>
     /// Enables or disables the "Next Image" button on the UI based on if it's not on the last image.
     /// </summary>
     /// <returns>'True' if the index is not on the last image, 'False' if it is.</returns>
-    private bool CanShowNextImageTemplate() => CurrentTemplateImageIndex < CurrentSequence.Templates?.Count-1;
+    private bool CanShowNextImageTemplate() => CurrentTemplateImageIndex < CurrentSequence?.Templates?.Count-1;
 
     /// <summary>
     /// Enables or disables the "Previous Image" button on the UI based on if it's not on the first image.
@@ -347,20 +351,11 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private bool CanDeleteSequence() => !string.IsNullOrEmpty(CurrentSequence?.Name);
 
     /// <summary>
-    /// Enables or disables the "Delete Template Image" and "Change Template Image" buttons on the UI based on if there's a showing image.
-    /// </summary>
-    /// <returns>'True' if there's a showing image, 'False' if there isn't.</returns>
-    private bool CanDeleteOrChangeTemplateImage() => CurrentSequence.Templates?.Any() != false;
-
-    /// <summary>
     /// Enables or disables the "Change Click Coordinates" button on the UI based on if there's a showing image.
     /// </summary>
     /// <returns>'True' if there's a showing image, 'False' if there isn't.</returns>
     public bool CanChangeClickCoordinateTemplateImage() { IsShowCoordinatesToggleButtonVisible = CurrentShowingImage != null; return CurrentShowingImage != null; }
 
-    #endregion
-
-    #region ErrorValidations
     #endregion
 
     #region PublicMethods
@@ -400,8 +395,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
             }
             catch (Exception ex)
             {
-                string fileName = Path.GetFileName(file);
-                _logger.LogError("Error trying to load auto clicker sequence for file '{fileName}'. {ex}", fileName, ex);
+                _logger.LogError("Error trying to load auto clicker sequence for file '{fileName}'. {ex}", Path.GetFileName(file), ex);
             }
 
             if (autoClickerSequence == null)
@@ -444,7 +438,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     {
         try
         {
-            CurrentShowingImage = null;
+            ResetSequenceDetails();
             if (CurrentSequence == null)
             {
                 IsSequenceDetailsVisible = false;
@@ -452,22 +446,14 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
             }
 
             IsSequenceDetailsVisible = true;
-            if (CurrentSequence.Templates?.Any() != true)
-            {
-                DelayBeforeClicking = 0;
-                IsChangeTemplateVisible = false;
-                IsDelayBeforeClickingTextBoxEnabled = false;
+            NotifyAllTemplateCommands();
+            if (CurrentSequence?.Templates == null || !CurrentSequence.Templates.Any())
                 return;
-            }
 
             NumberOfTemplateImages = CurrentSequence.Templates.Count;
             CurrentShowingImage = CurrentSequence.Templates[CurrentTemplateImageIndex].Image;
             DelayBeforeClicking = CurrentSequence.Templates[CurrentTemplateImageIndex].ClickCoordinatesInterval;
-            IsChangeTemplateVisible = true;
-            IsDelayBeforeClickingTextBoxEnabled = CurrentSequence.Templates.Any();
-            NotifyCanExecuteChanged(NextTemplateImageCommand);
-            NotifyCanExecuteChanged(ChangeTemplateImageCommand);
-            NotifyCanExecuteChanged(DeleteTemplateImageCommand);
+            IsDelayBeforeClickingTextBoxEnabled = true;
         }
         catch (Exception ex)
         {
@@ -476,11 +462,93 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     }
 
     /// <summary>
+    /// Resets all the details of a <see cref="AutoClickerSequence"/> to show to the user.
+    /// </summary>
+    private void ResetSequenceDetails()
+    {
+        IsSequenceDetailsVisible = false;
+        CurrentShowingImage = null;
+        CurrentTemplateImageIndex = 0;
+        NumberOfTemplateImages = 0;
+        DelayBeforeClicking = 0;
+        IsDelayBeforeClickingTextBoxEnabled = false;
+        IsShowCoordinatesToggleButtonVisible = false;
+    }
+
+    /// <summary>
+    /// Notifies all available commands.
+    /// </summary>
+    private void NotifyAllTemplateCommands()
+    {
+        NotifyCanExecuteChanged(NextTemplateImageCommand);
+        NotifyCanExecuteChanged(PreviousTemplateImageCommand);
+        NotifyCanExecuteChanged(ChangeTemplateImageCommand);
+        NotifyCanExecuteChanged(ChangeClickCoordinateTemplateImageCommand);
+        NotifyCanExecuteChanged(DeleteTemplateImageCommand);
+        NotifyCanExecuteChanged(SaveSequenceToFileCommand);
+    }
+
+    /// <summary>
+    /// Shows the current template image to the user.
+    /// </summary>
+    private void ShowCurrentTemplateImage()
+    {
+        if (CurrentSequence?.Templates?.Any() != true)
+            return;
+
+        CurrentShowingImage = CurrentSequence.Templates[CurrentTemplateImageIndex].Image;
+    }
+
+    /// <summary>
+    /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="autoClickerTemplate"><see cref="AutoClickerTemplate"/> with the selection made by the user and where to click on the image.</param>
+    private void HandleAutoClickerTemplateMessage(object sender, AutoClickerTemplate autoClickerTemplate)
+    {
+        if (CurrentSequence!.Templates == null)
+            CurrentSequence.Templates = new List<AutoClickerTemplate>();
+
+        if (_isChangingExistingTemplateImage)
+        {
+            CurrentSequence.Templates[CurrentTemplateImageIndex] = autoClickerTemplate;
+            ShowCurrentTemplateImage();
+            return;
+        }
+
+        // We're adding a new template image after the specified index. We add one to the index to show the correct number on the UI.
+        CurrentSequence.Templates.Insert(CurrentTemplateImageIndex, autoClickerTemplate);
+        ShowCurrentTemplateImage();
+        IsDelayBeforeClickingTextBoxEnabled = true;
+    }
+
+    /// <summary>
+    /// Deletes the current sequence from file.
+    /// </summary>
+    private bool DeleteSequenceFromFile()
+    {
+        try
+        {
+            string directoryPath = Path.Combine(_sequencePath, CurrentSequence?.Name ?? string.Empty);
+            if (Directory.Exists(directoryPath))
+                Directory.Delete(directoryPath, true);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error trying to delete sequence file file. {ex}", ex);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Saves the current sequence to a file.
     /// </summary>
-    private async Task<bool> SaveSequenceAndImagesToFile()
+    private bool SaveSequenceAndImagesToFile()
     {
-        string directoryPath = Path.Combine(_sequencePath, CurrentSequence.Name);
+        return true;
+        /*string directoryPath = Path.Combine(_sequencePath, CurrentSequence.Name);
 
         try
         {
@@ -499,73 +567,12 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
             await _dialogHost.Show(errorDialog, DIALOG_IDENTIFIER);
             _logger.LogError("Error trying to save sequence to file. {ex}", ex);
             return false;
-        }
+        }*/
     }
 
-    /// <summary>
-    /// Deletes the current sequence from file.
-    /// </summary>
-    private async Task<bool> DeleteSequenceFromFile()
-    {
-        try
-        {
-            string directoryPath = Path.Combine(_sequencePath, CurrentSequence.Name);
-            if (Directory.Exists(directoryPath))
-                Directory.Delete(directoryPath, true);
+    
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            ErrorDialog errorDialog = new($"Error trying to delete the sequence from file. Exception: '{ex.Message}'.");
-            await _dialogHost.Show(errorDialog, DIALOG_IDENTIFIER);
-            _logger.LogError("Error trying to save sequence to file. {ex}", ex);
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Shows the passed <see cref="AutoClickerSequence"/>.
-    /// </summary>
-    /// <param name="sequence">The <see cref="AutoClickerSequence"/> to show.</param>
-    private void ShowSequence(AutoClickerSequence? sequence)
-    {
-        CurrentSequence = sequence ?? AutoClickerSequences.FirstOrDefault()!;
-        _lastShownSequence = CurrentSequence;
-        OnSequenceSelectedItemChanged();
-    }
-
-    /// <summary>
-    /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="autoClickerTemplate"><see cref="AutoClickerTemplate"/> with the selection made by the user and where to click on the image.</param>
-    private void HandleAutoClickerTemplateMessage(object sender, AutoClickerTemplate autoClickerTemplate)
-    {
-        if (autoClickerTemplate.Image == null)
-        {
-            ErrorDialog errorDialog = new($"Template image is null cannot save it to a file.");
-            _dialogHost.Show(errorDialog, DIALOG_IDENTIFIER);
-            return;
-        }
-
-        // We're changing an existing template image.
-        if (_isChangingTemplate)
-        {
-            CurrentSequence.Templates[CurrentTemplateImageIndex] = autoClickerTemplate;
-            //ShowSequence(CurrentTemplateImageIndex);
-            IsDelayBeforeClickingTextBoxEnabled = CurrentSequence.Templates.Any();
-            _isUnsavedChanges = true;
-            return;
-        }
-
-        // We're adding a new template image after the specified index. We add one to the index to show the correct number on the UI.
-        CurrentSequence.Templates.Insert(CurrentTemplateImageIndex, autoClickerTemplate);
-        //ShowSequence(CurrentTemplateImageIndex);
-        IsDelayBeforeClickingTextBoxEnabled = CurrentSequence.Templates.Any();
-        _isUnsavedChanges = true;
-    }
-
+    
 
 
 

@@ -113,7 +113,16 @@ public partial class App : Application
             services.AddSingleton<BookReviewViewModel>();
             services.AddSingleton<MouseClickerViewModel>();
             services.AddSingleton<AutoClickerMenuViewModel>();
-            
+
+            //ScreenShotWindow
+            services.AddSingleton(provider =>
+            {
+                IKeyboardService keyboardService = provider.GetRequiredService<IKeyboardService>();
+                IMessenger messenger = provider.GetRequiredService<IMessenger>();
+
+                return new ScreenShotWindow(keyboardService, messenger);
+            });
+
             //Logging
             services.AddLogging(loggingBuilder =>
             {

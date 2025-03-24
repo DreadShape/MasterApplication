@@ -18,7 +18,6 @@ using MasterApplication.Models.Messages;
 using MasterApplication.Models.Structs;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.MouseClicker;
-using MasterApplication.UserControls;
 using MasterApplication.UserControls.Dialog;
 
 using MaterialDesignThemes.Wpf;
