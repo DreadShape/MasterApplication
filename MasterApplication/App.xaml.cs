@@ -114,14 +114,10 @@ public partial class App : Application
             services.AddSingleton<MouseClickerViewModel>();
             services.AddSingleton<AutoClickerMenuViewModel>();
 
-            //ScreenShotWindow
-            services.AddSingleton(provider =>
-            {
-                IKeyboardService keyboardService = provider.GetRequiredService<IKeyboardService>();
-                IMessenger messenger = provider.GetRequiredService<IMessenger>();
-
-                return new ScreenShotWindow(keyboardService, messenger);
-            });
+            //ScreenshotWindow
+            services.AddSingleton<ScreenShotWindowFactory>();
+            services.AddTransient<ScreenShotWindow>();
+            services.AddSingleton<IScreenShotWindowFactory, ScreenShotWindowFactory>();
 
             //Logging
             services.AddLogging(loggingBuilder =>
@@ -132,7 +128,6 @@ public partial class App : Application
 
             //Other
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<ScreenShotWindow>();
             services.AddSingleton<MainWindowViewModel>();
             services.AddSingleton<WeakReferenceMessenger>();
             services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());

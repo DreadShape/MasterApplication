@@ -172,20 +172,20 @@
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- ChangeTemplateButton -->
-                <Button Grid.Row="0"
-                        Margin="5,0,7,14"
-                        VerticalAlignment="Center"
-                        Command="{Binding ChangeTemplateImageCommand}"
-                        Content="Change Current Template"
-                        Style="{StaticResource BiggerLightButtons}" />
-
                 <!-- AddTemplateButton -->
                 <Button Grid.Row="1"
-                        Margin="5,0,7,12"
+                        Margin="5,0,7,14"
                         VerticalAlignment="Center"
                         Command="{Binding AddTemplateImageCommand}"
                         Content="Add New Template"
+                        Style="{StaticResource BiggerLightButtons}" />
+
+                <!-- ChangeTemplateButton -->
+                <Button Grid.Row="0"
+                        Margin="5,0,7,12"
+                        VerticalAlignment="Center"
+                        Command="{Binding ChangeTemplateImageCommand}"
+                        Content="Change Current Template"
                         Style="{StaticResource BiggerLightButtons}" />
               </Grid>
 

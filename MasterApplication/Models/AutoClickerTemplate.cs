@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Text.Json.Serialization;
+using System.Windows;
 
 namespace MasterApplication.Models;
 
@@ -8,6 +9,8 @@ namespace MasterApplication.Models;
 public class AutoClickerTemplate
 {
     public string ImagePath { get; set; }
+
+    [JsonIgnore]
     public byte[]? Image { get; set; }
 
     public Point ClickCoordinates { get; set; }

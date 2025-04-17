@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MasterApplication.Feature.MouseClicker;
 
-public partial class MouseClickerViewModel : ObservableObject, IRecipient<WindowActionMessage>
+public partial class MouseClickerViewModel : ObservableObject
 {
     #region Properties
 
@@ -67,10 +67,11 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private const string DIALOG_IDENTIFIER = "AutoClickerMenuDialog";
     private const string SEQUENCE_PATH = @"Feature\MouseClicker\Sequences";
     private readonly string _sequencePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SEQUENCE_PATH);
+    private string _templateImagePath = string.Empty;
     private readonly ILogger _logger;
     private readonly IMessenger _messenger;
     private readonly IDialogHost _dialogHost;
-    private readonly ScreenShotWindow _screenShotWindow;
+    private readonly ScreenShotWindowFactory _screenShotWindowFactory;
     private bool _isChangingExistingTemplateImage = false;
 
 
@@ -98,18 +99,20 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     /// <param name="messengerService"><see cref="IMessenger"/> to send/receive messenger from different parts of the application.</param>
     /// <param name="dialogHost"><see cref="IDialogHost"/> implementation to be able to show the material design dialog host.</param>
     /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
-    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue, ScreenShotWindow screenShotWindow)
+    /// <param name="screenShotWindowFactory"><see cref="IScreenShotWindowFactory"/> that can create a <see cref="ScreenShotWindow"/> instance.</param>
+    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue, ScreenShotWindowFactory screenShotWindowFactory)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dialogHost = dialogHost ?? throw new ArgumentNullException(nameof(dialogHost));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-        //_messenger.Register(this);
         _messenger.Register<AutoClickerTemplate>(this, HandleAutoClickerTemplateMessage);
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
-        _screenShotWindow = screenShotWindow ?? throw new ArgumentNullException(nameof(screenShotWindow));
+        _screenShotWindowFactory = screenShotWindowFactory ?? throw new ArgumentNullException(nameof(screenShotWindowFactory));
 
         AutoClickerSequences = new();
+
+        ResetSequenceDetails();
         LoadAutoClickerSequences();
         LoadAllSequencesTemplateImagesFromFile();
     }
@@ -139,6 +142,8 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
                 return;
             }
         }*/
+        _templateImagePath = Path.Combine(_sequencePath, @$"{CurrentSequence?.Name}\Images");
+        ResetSequenceDetails();
         ShowSequence();
     }
 
@@ -158,6 +163,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
 
         AutoClickerSequences.Add(autoClickerSequence);
         CurrentSequence = autoClickerSequence;
+        IsSequenceComboBoxEnabled = true;
         NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
     }
 
@@ -179,8 +185,9 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
         }
 
         AutoClickerSequences.Remove(CurrentSequence!);
-        CurrentSequence = AutoClickerSequences.LastOrDefault();
+        CurrentSequence = null;
         IsSequenceComboBoxEnabled = AutoClickerSequences.Any();
+        ResetSequenceDetails();
         NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
     }
 
@@ -190,7 +197,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     [RelayCommand(CanExecute = nameof(CanOpenAutoClickerMenu))]
     private void OnOpenAutoClickerMenu()
     {
-        _messenger.Send(new WindowActionMessage(Models.Enums.WindowAction.Minimize));
+        _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
         //_autoClickerMenuView.Show();
         //_autoClickerMenuView.Activate();
         NotifyCanExecuteChanged(OpenAutoClickerMenuCommand);
@@ -203,7 +210,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private void OnPreviousTemplateImage()
     {
         CurrentTemplateImageIndex--;
-        ShowCurrentTemplateImage();
+        CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
     }
 
     /// <summary>
@@ -213,7 +220,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private void OnNextTemplateImage()
     {
         CurrentTemplateImageIndex++;
-        ShowCurrentTemplateImage();
+        CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
     }
 
     /// <summary>
@@ -224,7 +231,8 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     {
         _isChangingExistingTemplateImage = true;
         _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
-        _screenShotWindow.Show();
+        ScreenShotWindow screenShotWindow = _screenShotWindowFactory.Create();
+        screenShotWindow.Show();
     }
 
     /// <summary>
@@ -233,7 +241,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     [RelayCommand(CanExecute = nameof(CanChangeClickCoordinateTemplateImage))]
     private void OnChangeClickCoordinateTemplateImage()
     {
-
+        var test = "NotImplemented";
     }
 
     /// <summary>
@@ -243,7 +251,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     [RelayCommand]
     private void OnShowCoordinatesOnImage(bool showCoordinates)
     {
-        var test = showCoordinates;
+        var test = "NotImplemented";
     }
 
     /// <summary>
@@ -254,7 +262,8 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     {
         _isChangingExistingTemplateImage = false;
         _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
-        _screenShotWindow.ShowDialog();
+        ScreenShotWindow screenShotWindow = _screenShotWindowFactory.Create();
+        screenShotWindow.Show();
     }
 
     /// <summary>
@@ -272,11 +281,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
         if (CurrentTemplateImageIndex > 0)
             CurrentTemplateImageIndex--;
 
-        ShowCurrentTemplateImage();
-
-        if (CurrentSequence?.Templates?.Any() != true)
-            IsDelayBeforeClickingTextBoxEnabled = false;
-
+        ShowSequence();
         NotifyCanExecuteChanged(ChangeTemplateImageCommand);
         _isUnsavedChanges = true;
     }
@@ -291,8 +296,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
         if (await _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER) is bool isDeleteSequenceCanceled && isDeleteSequenceCanceled)
             return;
 
-        /*if (await SaveSequenceAndImagesToFile())
-            return;*/
+        await IsCurrentSequenceSavedToFile();
     }
 
     
@@ -438,22 +442,19 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     {
         try
         {
-            ResetSequenceDetails();
-            if (CurrentSequence == null)
+            IsSequenceDetailsVisible = true;
+            if (CurrentSequence?.Templates == null || !CurrentSequence.Templates.Any())
             {
-                IsSequenceDetailsVisible = false;
+                CurrentShowingImage = null;
+                IsDelayBeforeClickingTextBoxEnabled = false;
                 return;
             }
-
-            IsSequenceDetailsVisible = true;
-            NotifyAllTemplateCommands();
-            if (CurrentSequence?.Templates == null || !CurrentSequence.Templates.Any())
-                return;
 
             NumberOfTemplateImages = CurrentSequence.Templates.Count;
             CurrentShowingImage = CurrentSequence.Templates[CurrentTemplateImageIndex].Image;
             DelayBeforeClicking = CurrentSequence.Templates[CurrentTemplateImageIndex].ClickCoordinatesInterval;
             IsDelayBeforeClickingTextBoxEnabled = true;
+            NotifyAllTemplateCommands();
         }
         catch (Exception ex)
         {
@@ -489,37 +490,24 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     }
 
     /// <summary>
-    /// Shows the current template image to the user.
-    /// </summary>
-    private void ShowCurrentTemplateImage()
-    {
-        if (CurrentSequence?.Templates?.Any() != true)
-            return;
-
-        CurrentShowingImage = CurrentSequence.Templates[CurrentTemplateImageIndex].Image;
-    }
-
-    /// <summary>
     /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="autoClickerTemplate"><see cref="AutoClickerTemplate"/> with the selection made by the user and where to click on the image.</param>
     private void HandleAutoClickerTemplateMessage(object sender, AutoClickerTemplate autoClickerTemplate)
     {
-        if (CurrentSequence!.Templates == null)
-            CurrentSequence.Templates = new List<AutoClickerTemplate>();
-
         if (_isChangingExistingTemplateImage)
         {
-            CurrentSequence.Templates[CurrentTemplateImageIndex] = autoClickerTemplate;
-            ShowCurrentTemplateImage();
+            CurrentSequence!.Templates[CurrentTemplateImageIndex] = autoClickerTemplate;
+            CurrentSequence!.Templates[CurrentTemplateImageIndex].ImagePath = Path.Combine(_templateImagePath, $"{CurrentTemplateImageIndex}.jpg");
+            ShowSequence();
             return;
         }
 
         // We're adding a new template image after the specified index. We add one to the index to show the correct number on the UI.
-        CurrentSequence.Templates.Insert(CurrentTemplateImageIndex, autoClickerTemplate);
-        ShowCurrentTemplateImage();
-        IsDelayBeforeClickingTextBoxEnabled = true;
+        CurrentSequence!.Templates.Insert(CurrentSequence.Templates.Count - 1, autoClickerTemplate);
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].ImagePath = Path.Combine(_templateImagePath, $"{CurrentSequence.Templates.Count - 1}.jpg");
+        ShowSequence();
     }
 
     /// <summary>
@@ -545,10 +533,9 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     /// <summary>
     /// Saves the current sequence to a file.
     /// </summary>
-    private bool SaveSequenceAndImagesToFile()
+    private async Task<bool> IsCurrentSequenceSavedToFile()
     {
-        return true;
-        /*string directoryPath = Path.Combine(_sequencePath, CurrentSequence.Name);
+        string directoryPath = Path.Combine(_sequencePath, CurrentSequence?.Name ?? string.Empty);
 
         try
         {
@@ -556,6 +543,7 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
             string jsonString = JsonSerializer.Serialize(CurrentSequence, options);
             Directory.CreateDirectory(directoryPath);
             File.WriteAllText(Path.Combine(directoryPath, "Sequence.json"), jsonString);
+            SaveTemplateImagesToFile();
             return true;
         }
         catch (Exception ex)
@@ -567,7 +555,25 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
             await _dialogHost.Show(errorDialog, DIALOG_IDENTIFIER);
             _logger.LogError("Error trying to save sequence to file. {ex}", ex);
             return false;
-        }*/
+        }
+    }
+
+    /// <summary>
+    /// Saves all the <see cref="AutoClickerTemplate"/> images of the <see cref="CurrentSequence"/> to local files.
+    /// </summary>
+    private void SaveTemplateImagesToFile()
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
+
+        if (!Directory.Exists(_templateImagePath))
+            Directory.CreateDirectory(_templateImagePath);
+
+        foreach (AutoClickerTemplate template in CurrentSequence.Templates)
+        {
+            if (template.Image != null)
+                File.WriteAllBytes(template.ImagePath, template.Image);
+        }
     }
 
     
@@ -592,10 +598,4 @@ public partial class MouseClickerViewModel : ObservableObject, IRecipient<Window
     private static void NotifyCanExecuteChanged(IRelayCommand command) => command.NotifyCanExecuteChanged();
 
     #endregion
-
-
-    void IRecipient<WindowActionMessage>.Receive(WindowActionMessage message)
-    {
-        throw new NotImplementedException();
-    }
 }

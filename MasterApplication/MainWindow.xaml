@@ -10,7 +10,7 @@
         Width="1280"
         Height="820"
         Closed="Window_Closed"
-        Topmost="True"
+        Topmost="False"
         Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d">
   <Grid>

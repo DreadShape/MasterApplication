@@ -12,7 +12,7 @@ public class AutoClickerSequence
     public Keybind StartKeybind { get; set; }
     public Keybind StopKeybind { get; set; }
 
-    public IList<AutoClickerTemplate>? Templates { get; set; }
+    public IList<AutoClickerTemplate> Templates { get; set; }
 
     /// <summary>
     /// Creates an instance of a <see cref="AutoClickerSequence"/>.
@@ -20,5 +20,8 @@ public class AutoClickerSequence
     public AutoClickerSequence()
     {
         Name = string.Empty;
+        StartKeybind = new("", 0);
+        StopKeybind = new("", 0);
+        Templates = new List<AutoClickerTemplate>();
     }
 }
