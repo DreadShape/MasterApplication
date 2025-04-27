@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 
 using CommunityToolkit.Mvvm.Messaging;
 
@@ -25,6 +24,7 @@ public partial class ScreenShotWindow : Window
     private readonly IMessenger _messengerService;
     private Point _startPoint;
     private bool _isSelecting = false;
+    private Bitmap? _originalScreenshot;
 
     /// <summary>
     /// Creates and instance of an <see cref="ScreenShotWindow"/>.
@@ -43,23 +43,35 @@ public partial class ScreenShotWindow : Window
         _keyboardService.KeyPressed -= KeyboardService_KeyPressed;
         _keyboardService.KeyPressed += KeyboardService_KeyPressed;
 
-        Loaded -= ScreenShotWindow_Loaded;
-        Loaded += ScreenShotWindow_Loaded;
+        ContentRendered -= ScreenShotWindow_ContentRendered;
+        ContentRendered += ScreenShotWindow_ContentRendered;
     }
 
     /// <summary>
-    /// When the form is initialized and rendered. It creates a screenshot of the current screen.
+    /// When the window is fully rendered and shown to the user.
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void ScreenShotWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void ScreenShotWindow_ContentRendered(object? sender, EventArgs e)
     {
-        Task.Run(async () =>
+        _originalScreenshot = await Task.Run(async () =>
         {
-            //Slight delay to wait for the previous window to minimize.
             await Task.Delay(100);
-            TakeScreenShot();
+            return TakeScreenShot();
         });
+
+        ScreenshotImage.Source = Utils.BitmapToBitmapImage(_originalScreenshot);
+
+        // Cover the screen with a semi-transparent overlay initially
+        OverlayTop.Width = OverlayCanvas.ActualWidth;
+        OverlayTop.Height = OverlayCanvas.ActualHeight;
+
+        OverlayLeft.Width = 0;
+        OverlayLeft.Height = 0;
+        OverlayRight.Width = 0;
+        OverlayRight.Height = 0;
+        OverlayBottom.Width = 0;
+        OverlayBottom.Height = 0;
     }
 
     /// <summary>
@@ -83,11 +95,14 @@ public partial class ScreenShotWindow : Window
     {
         _startPoint = e.GetPosition(this);
         _isSelecting = true;
+
         SelectionRectangle.Width = 0;
         SelectionRectangle.Height = 0;
         Canvas.SetLeft(SelectionRectangle, _startPoint.X);
         Canvas.SetTop(SelectionRectangle, _startPoint.Y);
         SelectionRectangle.Visibility = Visibility.Visible;
+
+        UpdateOverlayRectangles(_startPoint.X, _startPoint.Y, 0, 0);
     }
 
     /// <summary>
@@ -102,9 +117,10 @@ public partial class ScreenShotWindow : Window
 
         _isSelecting = false;
 
-        Bitmap selectedRegion = CaptureSelectedRegion();
+        Bitmap selectedRegion = null!;
         try
         {
+            selectedRegion = CaptureSelectedRegion();
             ScreenShotSelection selectionDialog = new(selectedRegion);
             selectionDialog.OnSelectionAccepted -= ScreenShotSelection_OnSelectionAccepted;
             selectionDialog.OnSelectionAccepted += ScreenShotSelection_OnSelectionAccepted;
@@ -153,39 +169,53 @@ public partial class ScreenShotWindow : Window
         double width = Math.Abs(currentPoint.X - _startPoint.X);
         double height = Math.Abs(currentPoint.Y - _startPoint.Y);
 
-        // Adjust for the border thickness. We add an extra pixel because we lose it when we inset the selection for the border
-        double borderThickness = SelectionRectangle.StrokeThickness + 1;
+        // Update the selection rectangle position and size
+        Canvas.SetLeft(SelectionRectangle, x);
+        Canvas.SetTop(SelectionRectangle, y);
+        SelectionRectangle.Width = width;
+        SelectionRectangle.Height = height;
 
-        // Update the selection rectangle position and size, insetting for the border
-        Canvas.SetLeft(SelectionRectangle, x - borderThickness / 2);
-        Canvas.SetTop(SelectionRectangle, y - borderThickness / 2);
-        SelectionRectangle.Width = width + borderThickness;
-        SelectionRectangle.Height = height + borderThickness;
-
-        // Update the clipping region for the overlay
-        UpdateOverlayClip(x, y, width, height);
+        // Update the dark overlay rectangles
+        UpdateOverlayRectangles(x, y, width, height);
     }
 
     /// <summary>
-    /// Updates the newly selected region.
+    /// Updates the positions and sizes of the overlay rectangles based on the current selection.
+    /// This method darkens the areas outside the selected region by adjusting four overlay rectangles
+    /// (top, left, right, bottom) to fit around the user's selection.
     /// </summary>
-    /// <param name="x">Horizontal coordinate.</param>
-    /// <param name="y">Vertical coordinate.</param>
-    /// <param name="width">Width of the selection.</param>
-    /// <param name="height">Height of the selection.</param>
-    private void UpdateOverlayClip(double x, double y, double width, double height)
+    /// <param name="x">The X-coordinate of the selection's top-left corner.</param>
+    /// <param name="y">The Y-coordinate of the selection's top-left corner.</param>
+    /// <param name="width">The width of the selection rectangle.</param>
+    /// <param name="height">The height of the selection rectangle.</param>
+    private void UpdateOverlayRectangles(double x, double y, double width, double height)
     {
-        // Define the selected area as a RectangleGeometry
-        RectangleGeometry selectedRegion = new(new Rect(x, y, width, height));
+        double canvasWidth = OverlayCanvas.ActualWidth;
+        double canvasHeight = OverlayCanvas.ActualHeight;
 
-        // Define the entire screen area for clipping
-        RectangleGeometry fullRegion = new(new Rect(0, 0, OverlayCanvas.ActualWidth, OverlayCanvas.ActualHeight));
+        // Top rectangle
+        Canvas.SetLeft(OverlayTop, 0);
+        Canvas.SetTop(OverlayTop, 0);
+        OverlayTop.Width = canvasWidth;
+        OverlayTop.Height = y;
 
-        // Combine the full region and the selected region using Exclude (the area selected will be cut out)
-        CombinedGeometry overlayRegion = new(GeometryCombineMode.Exclude, fullRegion, selectedRegion);
+        // Left rectangle
+        Canvas.SetLeft(OverlayLeft, 0);
+        Canvas.SetTop(OverlayLeft, y);
+        OverlayLeft.Width = x;
+        OverlayLeft.Height = height;
 
-        // Apply the clip to the overlay canvas, leaving the selection rectangle intact
-        OverlayCanvas.Clip = overlayRegion;
+        // Right rectangle
+        Canvas.SetLeft(OverlayRight, x + width);
+        Canvas.SetTop(OverlayRight, y);
+        OverlayRight.Width = canvasWidth - (x + width);
+        OverlayRight.Height = height;
+
+        // Bottom rectangle
+        Canvas.SetLeft(OverlayBottom, 0);
+        Canvas.SetTop(OverlayBottom, y + height);
+        OverlayBottom.Width = canvasWidth;
+        OverlayBottom.Height = canvasHeight - (y + height);
     }
 
     /// <summary>
@@ -194,28 +224,29 @@ public partial class ScreenShotWindow : Window
     /// <returns>The selected region as a <see cref="Bitmap"/>.</returns>
     private Bitmap CaptureSelectedRegion()
     {
-        // Get the selection bounds
+        if (_originalScreenshot == null)
+            throw new InvalidOperationException("No screenshot available.");
+
         double left = Canvas.GetLeft(SelectionRectangle);
         double top = Canvas.GetTop(SelectionRectangle);
         double width = SelectionRectangle.Width - (SelectionRectangle.StrokeThickness + 5);
         double height = SelectionRectangle.Height - (SelectionRectangle.StrokeThickness + 2);
 
-        // Convert the selected region to the screen coordinates
-        int screenX = (int)(left * (SystemParameters.PrimaryScreenWidth / ActualWidth));
-        int screenY = (int)(top * (SystemParameters.PrimaryScreenHeight / ActualHeight));
-        int screenWidth = (int)(width * (SystemParameters.PrimaryScreenWidth / ActualWidth));
-        int screenHeight = (int)(height * (SystemParameters.PrimaryScreenHeight / ActualHeight));
+        int screenX = (int)(left * (_originalScreenshot.Width / ActualWidth));
+        int screenY = (int)(top * (_originalScreenshot.Height / ActualHeight));
+        int screenWidth = (int)(width * (_originalScreenshot.Width / ActualWidth));
+        int screenHeight = (int)(height * (_originalScreenshot.Height / ActualHeight));
 
-        // Create a bitmap for the selected region
-        Bitmap bitmap = new Bitmap(screenWidth, screenHeight);
+        Rectangle cropRect = new Rectangle(screenX, screenY, screenWidth, screenHeight);
 
-        // Capture the selected region and draw it into the bitmap
-        using (Graphics g = Graphics.FromImage(bitmap))
+        Bitmap croppedBitmap = new Bitmap(cropRect.Width, cropRect.Height);
+
+        using (Graphics g = Graphics.FromImage(croppedBitmap))
         {
-            g.CopyFromScreen(screenX, screenY, 0, 0, bitmap.Size);
+            g.DrawImage(_originalScreenshot, new Rectangle(0, 0, cropRect.Width, cropRect.Height), cropRect, GraphicsUnit.Pixel);
         }
 
-        return bitmap;
+        return croppedBitmap;
     }
 
     /// <summary>
@@ -236,6 +267,8 @@ public partial class ScreenShotWindow : Window
         Canvas.SetLeft(SelectionRectangle, 0);
         Canvas.SetTop(SelectionRectangle, 0);
         SelectionRectangle.Visibility = Visibility.Collapsed;
+        _keyboardService.KeyPressed -= KeyboardService_KeyPressed;
+        ContentRendered -= ScreenShotWindow_ContentRendered;
         _messengerService.Send(new WindowActionMessage(WindowAction.Normal));
         Close();
     }
@@ -243,7 +276,8 @@ public partial class ScreenShotWindow : Window
     /// <summary>
     /// Takes a screenshot of the current screen.
     /// </summary>
-    private void TakeScreenShot()
+    /// <returns>The screenshot of the captured screen as a <see cref="Bitmap"/>.</returns>
+    private Bitmap TakeScreenShot()
     {
         Bitmap screenshot = new Bitmap((int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight);
         using (Graphics g = Graphics.FromImage(screenshot))
@@ -251,7 +285,7 @@ public partial class ScreenShotWindow : Window
             g.CopyFromScreen(0, 0, 0, 0, screenshot.Size);
         }
 
-        ScreenshotImage.Source = Utils.BitmapToBitmapImage(screenshot);
+        return screenshot;
     }
 
     /// <summary>
@@ -259,15 +293,18 @@ public partial class ScreenShotWindow : Window
     /// </summary>
     private void ResetOverlay()
     {
-        OverlayCanvas.Clip = null; // Remove any previous clipping
+        // Remove previous clipping
+        OverlayCanvas.Clip = null;
 
-        // Reset selection rectangle
+        // Hide selection rectangle
         SelectionRectangle.Visibility = Visibility.Collapsed;
         SelectionRectangle.Width = 0;
         SelectionRectangle.Height = 0;
-        SelectionRectangle.StrokeThickness = 1; // Ensure stroke is back to default
+        SelectionRectangle.StrokeThickness = 1;
 
-        //Remove the white selection border of the previous selection
-        ScreenshotImage.Source = null;
+        UpdateOverlayRectangles(0, 0, 0, 0);
+
+        if (_originalScreenshot != null)
+            ScreenshotImage.Source = Utils.BitmapToBitmapImage(_originalScreenshot);
     }
 }

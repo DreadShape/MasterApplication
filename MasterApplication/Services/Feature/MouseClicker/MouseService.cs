@@ -184,7 +184,7 @@ public class MouseService : IMouseService
     public void StartMouseHook()
     {
         if (_hookID != IntPtr.Zero)
-            throw new InvalidOperationException("Mouse hook is already active.");
+            return;
 
         _hookID = SetHook(_proc);
     }
@@ -196,7 +196,7 @@ public class MouseService : IMouseService
     public void StopMouseHook()
     {
         if (_hookID == IntPtr.Zero)
-            throw new InvalidOperationException("Mouse hook is not currently active.");
+            return;
 
         UnhookWindowsHookEx(_hookID);
         _hookID = IntPtr.Zero;

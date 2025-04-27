@@ -14,7 +14,8 @@ public class AutoClickerTemplate
     public byte[]? Image { get; set; }
 
     public Point ClickCoordinates { get; set; }
-    public int ClickCoordinatesInterval { get; set; }
+    public int DelayBeforeClicking { get; set; }
+    public int DelayAfterClicking { get; set; }
 
     public bool MonitorForChange { get; set; }
     public int MonitorForChangeInterval { get; set; }
@@ -28,7 +29,8 @@ public class AutoClickerTemplate
         Image = null;
 
         ClickCoordinates = new Point();
-        ClickCoordinatesInterval = 0;
+        DelayBeforeClicking = 0;
+        DelayAfterClicking = 0;
 
         MonitorForChange = false;
         MonitorForChangeInterval = 0;

@@ -86,7 +86,7 @@ public class KeyboardService : IKeyboardService
     public void StartKeyboardHook()
     {
         if (_isHooked)
-            throw new InvalidOperationException("Keyboard hook is already active.");
+            return;
 
         _hookID = SetHook(_proc);
         _isHooked = true;
@@ -99,7 +99,7 @@ public class KeyboardService : IKeyboardService
     public void StopKeyboardHook()
     {
         if (!_isHooked)
-            throw new InvalidOperationException("Keyboard hook is not currently active.");
+            return;
 
         UnhookWindowsHookEx(_hookID);
         _isHooked = false;

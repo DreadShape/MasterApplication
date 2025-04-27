@@ -224,7 +224,7 @@
                          PreviewKeyDown="DelayBeforeClickingTextBox_PreviewKeyDown"
                          PreviewTextInput="DelayBeforeClickingTextBox_PreviewTextInput"
                          Style="{StaticResource BiggerFontOutlineTextBox}"
-                         Text="{Binding DelayBeforeClicking}" />
+                         Text="{Binding DelayBeforeClicking, UpdateSourceTrigger=PropertyChanged}"></TextBox>
 
                 <!-- ShowCoordinatesCheckbox -->
                 <StackPanel Grid.Row="1"

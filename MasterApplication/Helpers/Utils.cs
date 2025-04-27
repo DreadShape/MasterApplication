@@ -91,16 +91,16 @@ public static class Utils
     /// <returns></returns>
     public static bool DetectChange(Image<Gray, byte> previous, Image<Gray, byte> current)
     {
-        // Calculate the absolute difference between the two images
-        Image<Gray, byte> difference = previous.AbsDiff(current);
+        using var difference = previous.AbsDiff(current);
 
-        // Calculate the sum of the differences
+        // Normalize the change over total pixel count
+        double totalPixels = difference.Width * difference.Height;
         double sumOfDifferences = CvInvoke.Sum(difference).V0;
+        double averageChange = sumOfDifferences / totalPixels;
 
-        // Define a threshold to decide if there is a significant change
-        double changeThreshold = 1200.0; // Adjust based on your needs
+        double threshold = 50.0; // tweak this value based on experimentation
 
-        return sumOfDifferences > changeThreshold;
+        return averageChange > threshold;
     }
 
     /// <summary>
@@ -110,19 +110,21 @@ public static class Utils
     /// <returns></returns>
     public static BitmapImage BitmapToBitmapImage(Bitmap bitmap)
     {
-        using (MemoryStream memoryStream = new())
+        BitmapImage bitmapImage = new BitmapImage();
+        using (MemoryStream memoryStream = new MemoryStream())
         {
-            bitmap.Save(memoryStream, ImageFormat.Png);
-            memoryStream.Position = 0;
+            // Save as JPEG (compressed and faster to load)
+            bitmap.Save(memoryStream, ImageFormat.Jpeg);
+            memoryStream.Seek(0, SeekOrigin.Begin);
 
-            BitmapImage bitmapImage = new();
+            // Create a BitmapImage from the memory stream
             bitmapImage.BeginInit();
             bitmapImage.StreamSource = memoryStream;
             bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
             bitmapImage.EndInit();
-
-            return bitmapImage;
         }
+
+        return bitmapImage;
     }
 
     /// <summary>

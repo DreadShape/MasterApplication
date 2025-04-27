@@ -74,6 +74,7 @@ public partial class App : Application
                     break;
                 case Models.Enums.WindowAction.Normal:
                     app.MainWindow.WindowState = WindowState.Normal;
+                    app.MainWindow.Activate();
                     break;
                 case Models.Enums.WindowAction.Maximize:
                     app.MainWindow.WindowState = WindowState.Maximized;
@@ -112,7 +113,9 @@ public partial class App : Application
             services.AddSingleton<FileViewModel>();
             services.AddSingleton<BookReviewViewModel>();
             services.AddSingleton<MouseClickerViewModel>();
-            services.AddSingleton<AutoClickerMenuViewModel>();
+            services.AddTransient<AutoClickerMenuViewModel>();
+            services.AddSingleton<AutoClickerMenuViewModelFactory>();
+            services.AddSingleton<IAutoClickerMenuViewModelFactory, AutoClickerMenuViewModelFactory>();
 
             //ScreenshotWindow
             services.AddSingleton<ScreenShotWindowFactory>();
