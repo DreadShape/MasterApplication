@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace MasterApplication.Feature.MouseClicker;
 
@@ -12,6 +13,7 @@ namespace MasterApplication.Feature.MouseClicker;
 public partial class MouseClickerView : UserControl
 {
     private MouseClickerViewModel _viewModel = null!;
+    private bool _showCoordinates = false;
 
     public MouseClickerView()
     {
@@ -19,13 +21,6 @@ public partial class MouseClickerView : UserControl
 
         DataContextChanged += MouseClickerView_DataContextChanged;
         
-    }
-
-    private void TemplateImage_Loaded(object sender, RoutedEventArgs e)
-    {
-        // Ensure the canvas is the same size as the image
-        OverlayCanvas.Width = TemplateImage.ActualWidth;
-        OverlayCanvas.Height = TemplateImage.ActualHeight;
     }
 
     /// <summary>
@@ -37,9 +32,9 @@ public partial class MouseClickerView : UserControl
     {
         if (sender is ToggleButton toggle && toggle.IsChecked is bool isChecked)
         {
-            _viewModel.ShowCoordinatesOnImageCommand.Execute(isChecked);
+            _showCoordinates = isChecked;
 
-            if (!isChecked || (_viewModel.ClickCoordinates.X == 0 && _viewModel.ClickCoordinates.Y == 0))
+            if (!_showCoordinates)
             {
                 HideCross();
                 return;
@@ -55,18 +50,52 @@ public partial class MouseClickerView : UserControl
     /// <param name="point">Where to draw the cross.</param>
     private void DrawCross(Point point)
     {
-        const double crossSize = 6;
+        var bitmapImage = TemplateImage.Source as BitmapImage;
+        if (bitmapImage == null)
+            return;
 
-        CrossLine1.X1 = point.X - crossSize;
-        CrossLine1.Y1 = point.Y;
-        CrossLine1.X2 = point.X + crossSize;
-        CrossLine1.Y2 = point.Y;
+        // Actual size the image is being displayed at
+        double imageDisplayWidth = TemplateImage.ActualWidth;
+        double imageDisplayHeight = TemplateImage.ActualHeight;
 
-        CrossLine2.X1 = point.X;
-        CrossLine2.Y1 = point.Y - crossSize;
-        CrossLine2.X2 = point.X;
-        CrossLine2.Y2 = point.Y + crossSize;
+        // Actual image pixel size
+        double imagePixelWidth = bitmapImage.PixelWidth;
+        double imagePixelHeight = bitmapImage.PixelHeight;
 
+        // Calculate scaling factors
+        double scaleX = imageDisplayWidth / imagePixelWidth;
+        double scaleY = imageDisplayHeight / imagePixelHeight;
+
+        // Assume Stretch="Uniform", take the smaller scale to maintain aspect ratio
+        double uniformScale = Math.Min(scaleX, scaleY);
+
+        // Compute size of displayed image
+        double scaledWidth = imagePixelWidth * uniformScale;
+        double scaledHeight = imagePixelHeight * uniformScale;
+
+        // Center offset if the image doesn’t fully fill the control
+        double offsetX = (OverlayCanvas.ActualWidth - scaledWidth) / 2;
+        double offsetY = (OverlayCanvas.ActualHeight - scaledHeight) / 2;
+
+        // Final coordinates in the canvas
+        double x = point.X * uniformScale + offsetX;
+        double y = point.Y * uniformScale + offsetY;
+
+        double crossSize = 20;
+
+        // Set line 1 (diagonal from top-left to bottom-right)
+        CrossLine1.X1 = x - crossSize;
+        CrossLine1.Y1 = y - crossSize;
+        CrossLine1.X2 = x + crossSize;
+        CrossLine1.Y2 = y + crossSize;
+
+        // Set line 2 (diagonal from bottom-left to top-right)
+        CrossLine2.X1 = x - crossSize;
+        CrossLine2.Y1 = y + crossSize;
+        CrossLine2.X2 = x + crossSize;
+        CrossLine2.Y2 = y - crossSize;
+
+        // Show the lines
         CrossLine1.Visibility = Visibility.Visible;
         CrossLine2.Visibility = Visibility.Visible;
     }
@@ -88,7 +117,26 @@ public partial class MouseClickerView : UserControl
     private void MouseClickerView_DataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         if (e.NewValue is MouseClickerViewModel viewModel)
+        {
             _viewModel = viewModel;
+            _viewModel.ClickCoordinatesChanged += TemplateClickCoordinatesChanged;
+        }
+    }
+
+    /// <summary>
+    /// Handles the event when the template changes the click coordinates.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void TemplateClickCoordinatesChanged(object? sender, EventArgs e)
+    {
+        if (!_showCoordinates)
+        {
+            HideCross();
+            return;
+        }
+
+        DrawCross(_viewModel.ClickCoordinates);
     }
 
     /// <summary>

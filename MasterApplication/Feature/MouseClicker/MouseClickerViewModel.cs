@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
+using MasterApplication.Helpers;
 using MasterApplication.Models;
 using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
@@ -47,6 +48,9 @@ public partial class MouseClickerViewModel : ObservableObject
     private byte[]? _currentShowingImage;
 
     [ObservableProperty]
+    private byte[]? _currentShowingTemplateSearchingRegionImage;
+
+    [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(NextTemplateImageCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviousTemplateImageCommand))]
     private int _currentTemplateImageIndex;
@@ -67,7 +71,7 @@ public partial class MouseClickerViewModel : ObservableObject
     private bool _isDelayBeforeAndAfterClickingTextBoxEnabled;
 
     [ObservableProperty]
-    private System.Windows.Point clickCoordinates;
+    private System.Windows.Point _clickCoordinates;
 
     [ObservableProperty]
     private bool _isShowCoordinatesToggleButtonVisible;
@@ -99,6 +103,12 @@ public partial class MouseClickerViewModel : ObservableObject
     private readonly AutoClickerMenuViewModelFactory _autoClickerMenuViewModelFactory;
     private readonly KeybindDialog _keybindDialog;
     private bool _isChangingExistingTemplateImage = false;
+
+    #endregion
+
+    #region PublicEvents
+
+    public event EventHandler? ClickCoordinatesChanged;
 
     #endregion
 
@@ -147,6 +157,7 @@ public partial class MouseClickerViewModel : ObservableObject
     private void OnSequenceSelectedItemChanged()
     {
         _templateImagePath = Path.Combine(_sequencePath, @$"{CurrentSequence?.Name}\Images");
+        CurrentShowingTemplateSearchingRegionImage = CurrentSequence?.TemplateSearchRegionImage ?? null;
         ResetSequenceDetails();
         ShowSequence();
     }
@@ -218,9 +229,13 @@ public partial class MouseClickerViewModel : ObservableObject
         CurrentTemplateImageIndex--;
         CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
         DelayBeforeClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayBeforeClicking ?? 0;
+        DelayAfterClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayAfterClicking ?? 0;
         MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
         MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
         MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
+        ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0,0);
+        ClickCoordinatesChanged?.Invoke(this, EventArgs.Empty);
+
     }
 
     /// <summary>
@@ -232,9 +247,12 @@ public partial class MouseClickerViewModel : ObservableObject
         CurrentTemplateImageIndex++;
         CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
         DelayBeforeClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayBeforeClicking ?? 0;
+        DelayAfterClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayAfterClicking ?? 0;
         MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
         MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
         MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
+        ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0, 0);
+        ClickCoordinatesChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -247,6 +265,7 @@ public partial class MouseClickerViewModel : ObservableObject
         _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
         ScreenShotWindow screenShotWindow = _screenShotWindowFactory.Create();
         screenShotWindow.Show();
+        screenShotWindow.Activate();
     }
 
     /// <summary>
@@ -255,20 +274,24 @@ public partial class MouseClickerViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanChangeClickCoordinateTemplateImage))]
     private void OnChangeClickCoordinateTemplateImage()
     {
-        var test = "NotImplemented";
-    }
+        Bitmap image = Utils.ByteArrayToBitmap(CurrentShowingImage!);
+        ScreenShotSelection selectionDialog = new ScreenShotSelection(image);
 
-    /// <summary>
-    /// Shows/hides the clicking coordinates on the current template image.
-    /// </summary>
-    /// <param name="showCoordinates">Flag to show/hide the coordinates on the template image.</param>
-    [RelayCommand]
-    private void OnShowCoordinatesOnImage(bool showCoordinates)
-    {
-        if (showCoordinates)
-            ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0,0);
-        else
-            ClickCoordinates = new System.Windows.Point(0,0);
+        void Handler(object? sender, AutoClickerTemplate e)
+        {
+            CurrentSequence!.Templates[CurrentTemplateImageIndex].ClickCoordinates = e.ClickCoordinates;
+            ClickCoordinates = e.ClickCoordinates;
+            ClickCoordinatesChanged?.Invoke(this, EventArgs.Empty);
+            selectionDialog.OnSelectionAccepted -= Handler;
+        }
+
+        selectionDialog.OnSelectionAccepted += Handler;
+        selectionDialog.ShowDialog();
+
+        /*if (selectionDialog.DialogResult == true && CheckBoxChanged)
+        {
+            DrawCoordinatesOnImage(CurrentSequence!.Templates[CurrentTemplateImageIndex].ClickCoordinates);
+        }*/
     }
 
     /// <summary>
@@ -469,7 +492,10 @@ public partial class MouseClickerViewModel : ObservableObject
     {
         foreach (AutoClickerSequence sequence in AutoClickerSequences)
         {
-            if (sequence.Templates == null)
+            if (File.Exists(sequence?.TemplateSearchRegionImagePath))
+                sequence.TemplateSearchRegionImage = File.ReadAllBytes(sequence.TemplateSearchRegionImagePath);
+
+            if (sequence?.Templates == null)
                 continue;
 
             foreach (AutoClickerTemplate autoClickerTemplate in sequence.Templates)
@@ -512,6 +538,7 @@ public partial class MouseClickerViewModel : ObservableObject
             MonitorForChangeInterval = CurrentSequence.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval;
             MatchThreshold = CurrentSequence.Templates[CurrentTemplateImageIndex].MatchThreshold;
             IsDelayBeforeAndAfterClickingTextBoxEnabled = true;
+            ClickCoordinates = CurrentSequence.Templates[CurrentTemplateImageIndex].ClickCoordinates;
             NotifyAllTemplateCommands();
         }
         catch (Exception ex)
@@ -564,6 +591,9 @@ public partial class MouseClickerViewModel : ObservableObject
         if (screenShotMessage.IsSearchingBoundsScreenshot)
         {
             CurrentSequence!.TemplateSearchBounds = screenShotMessage.TemplateBounds;
+            CurrentSequence!.TemplateSearchRegionImage = screenShotMessage.AutoClickerTemplate.Image;
+            CurrentShowingTemplateSearchingRegionImage = screenShotMessage.AutoClickerTemplate.Image;
+            CurrentSequence!.TemplateSearchRegionImagePath = Path.Combine(_templateImagePath, "searchingRegion.jpg");
             return;
         }
 
@@ -579,16 +609,6 @@ public partial class MouseClickerViewModel : ObservableObject
         screenShotMessage.AutoClickerTemplate.ImagePath = Path.Combine(_templateImagePath, $"{CurrentSequence?.Templates.Count}.jpg");
         CurrentSequence!.Templates.Insert(CurrentSequence.Templates.Count, screenShotMessage.AutoClickerTemplate);
         ShowSequence();
-    }
-
-    /// <summary>
-    /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="templateBounds"><see cref="Rectangle"/> with the selection made by the user to know the location and size.</param>
-    private void HandleTemplateBoundsMessage(object sender, Rectangle templateBounds)
-    {
-        CurrentSequence!.TemplateSearchBounds = templateBounds;
     }
 
     /// <summary>
@@ -651,6 +671,9 @@ public partial class MouseClickerViewModel : ObservableObject
 
             if (!Directory.Exists(_templateImagePath))
                 Directory.CreateDirectory(_templateImagePath);
+
+            if (CurrentSequence.TemplateSearchRegionImage != null)
+                File.WriteAllBytes(CurrentSequence.TemplateSearchRegionImagePath, CurrentSequence.TemplateSearchRegionImage);
 
             foreach (AutoClickerTemplate template in CurrentSequence.Templates)
             {

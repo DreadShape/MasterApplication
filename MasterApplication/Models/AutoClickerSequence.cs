@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Text.Json.Serialization;
 
 using MasterApplication.Models.Structs;
 
@@ -14,6 +15,10 @@ public class AutoClickerSequence
     public Keybind StartKeybind { get; set; }
     public Keybind StopKeybind { get; set; }
     public Rectangle TemplateSearchBounds { get; set; }
+    public string TemplateSearchRegionImagePath { get; set; }
+
+    [JsonIgnore]
+    public byte[]? TemplateSearchRegionImage { get; set; }
 
     public IList<AutoClickerTemplate> Templates { get; set; }
 
@@ -25,6 +30,7 @@ public class AutoClickerSequence
         Name = string.Empty;
         StartKeybind = new("", 0);
         StopKeybind = new("", 0);
+        TemplateSearchRegionImagePath = string.Empty;
         Templates = new List<AutoClickerTemplate>();
     }
 

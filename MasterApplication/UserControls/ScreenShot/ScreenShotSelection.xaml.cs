@@ -52,7 +52,7 @@ public partial class ScreenShotSelection : Window
 
         _template = new();
         _template.Image = Utils.BitmapToByteArray(screenshot);
-        _template.ClickCoordinates = new System.Windows.Point(bitmapImage.Width / 2, bitmapImage.Height / 2);
+        _template.ClickCoordinates = new System.Windows.Point(Math.Round(bitmapImage.Width / 2), Math.Round(bitmapImage.Height / 2));
     }
 
     private void AcceptButton_Click(object sender, RoutedEventArgs e)
@@ -71,7 +71,8 @@ public partial class ScreenShotSelection : Window
     private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         // Get the mouse click position relative to the Image control
-        System.Windows.Point clickPosition = e.GetPosition(ScreenshotImage);
+        System.Windows.Point clickPositionRaw = e.GetPosition(ScreenshotImage);
+        System.Windows.Point clickPosition = new System.Windows.Point(Math.Round(clickPositionRaw.X), Math.Round(clickPositionRaw.Y));
 
         // Get the actual size of the image being displayed (accounting for Stretch)
         var bitmapImage = ScreenshotImage.Source as BitmapImage;

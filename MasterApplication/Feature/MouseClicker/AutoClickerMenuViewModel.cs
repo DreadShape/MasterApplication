@@ -82,6 +82,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     private readonly DispatcherTimer _timer;
     private TimeSpan _time;
     private readonly AutoClickerSequence _autoClickerSequence;
+    private readonly System.Windows.Size _screenSize = new System.Windows.Size((int)System.Windows.SystemParameters.PrimaryScreenWidth, (int)System.Windows.SystemParameters.PrimaryScreenHeight);
 
     #endregion
 
@@ -242,7 +243,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                         TemplateImageToSearch = step.Image;
                         TemplateMatchThreshold = step.MatchThreshold.ToString("F2");
                         await Task.Delay(step.DelayBeforeClicking, token);
-                        mouseCoordinate = GetScreenCoordinates(step.ImagePath, step.MatchThreshold);
+                        mouseCoordinate = GetScreenCoordinates(step.ImagePath, step.MatchThreshold, step.ClickCoordinates);
                         if (mouseCoordinate.X == 0 || mouseCoordinate.Y == 0)
                         {
                             StopAutoClicker();
@@ -302,8 +303,9 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     /// </summary>
     /// <param name="templateToSearch">Name of the template image file to search for.</param>
     /// <param name="templateThreshold">Threshold of the template to find.</param>
+    /// <param name="clickOffset">Where to click based on each template.</param>
     /// <returns>Coordinates of the lower right corner of the matched area or 0,0 if there was an error finding the template.</returns>
-    private MouseCoordinate GetScreenCoordinates(string templateToSearch, double templateThreshold)
+    private MouseCoordinate GetScreenCoordinates(string templateToSearch, double templateThreshold, System.Windows.Point clickOffset)
     {
         for (int attempt = 0; attempt <= 10; attempt++)
         {
@@ -326,8 +328,15 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                 if (maxValue >= templateThreshold)
                 {
                     TemplateMatchScoreForeColor = HexColors.Success;
-                    int matchCenterX = matchRect.X + matchRect.Width / 2;
-                    int matchCenterY = matchRect.Y + matchRect.Height / 2;
+
+                    int clickX = (int)(matchRect.X + clickOffset.X);
+                    int clickY = (int)(matchRect.Y + clickOffset.Y);
+
+                    // Offset by the top-left of the search bounds
+                    clickX += _autoClickerSequence.TemplateSearchBounds.X;
+                    clickY += _autoClickerSequence.TemplateSearchBounds.Y;
+
+                    return new MouseCoordinate(clickX, clickY);
 
                     /*CvInvoke.PutText(sourceImage, $"{maxValue:F2}", new Point(matchRect.X, matchRect.Y - 10), FontFace.HersheySimplex, 0.5, new MCvScalar(255), 1);
                     sourceImage.Draw(matchRect, new Gray(255), 2);  // white border, thickness 2
@@ -358,8 +367,6 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                     // Draw rectangle on the grayscale image
                     //sourceImage.Draw(matchRect, new Gray(255), 2);  // white border, thickness 2
                     //sourceImage.Save(@$"E:\\Applications\\Desktop\\MasterApplication\\MasterApplication\\bin\\Debug\\net8.0-windows\\Feature\\MouseClicker\\Sequences\\Bidding\\Matched\{Path.GetFileName(templateToSearch).Split('.').First()}.jpg");
-
-                    return new MouseCoordinate(matchCenterX + _autoClickerSequence.TemplateSearchBounds.X, matchCenterY + _autoClickerSequence.TemplateSearchBounds.Y);
                 }
 
                 TemplateMatchScoreForeColor = HexColors.Error;
