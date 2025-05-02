@@ -20,11 +20,14 @@ namespace MasterApplication.UserControls.ScreenShot;
 /// </summary>
 public partial class ScreenShotWindow : Window
 {
+    public bool IsSearchingBoundsScreenshot { get; set; }
+
     private readonly IKeyboardService _keyboardService;
     private readonly IMessenger _messengerService;
     private Point _startPoint;
     private bool _isSelecting = false;
     private Bitmap? _originalScreenshot;
+    private Rectangle _selectedScreenRegion;
 
     /// <summary>
     /// Creates and instance of an <see cref="ScreenShotWindow"/>.
@@ -148,7 +151,11 @@ public partial class ScreenShotWindow : Window
     /// <param name="e"></param>
     private void ScreenShotSelection_OnSelectionAccepted(object? sender, AutoClickerTemplate e)
     {
-        _messengerService.Send(e);
+        ScreenShotMessage message = new ScreenShotMessage();
+        message.TemplateBounds = _selectedScreenRegion;
+        message.AutoClickerTemplate = e;
+        message.IsSearchingBoundsScreenshot = IsSearchingBoundsScreenshot;
+        _messengerService.Send(message);
     }
 
     /// <summary>
@@ -238,6 +245,7 @@ public partial class ScreenShotWindow : Window
         int screenHeight = (int)(height * (_originalScreenshot.Height / ActualHeight));
 
         Rectangle cropRect = new Rectangle(screenX, screenY, screenWidth, screenHeight);
+        _selectedScreenRegion = cropRect;
 
         Bitmap croppedBitmap = new Bitmap(cropRect.Width, cropRect.Height);
 

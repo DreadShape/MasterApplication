@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Input;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using MasterApplication.Models;
 using MasterApplication.Models.Enums;
 using MasterApplication.Models.Messages;
+using MasterApplication.Models.Structs;
 using MasterApplication.Services.Dialog;
 using MasterApplication.UserControls.Dialog;
 using MasterApplication.UserControls.ScreenShot;
@@ -55,10 +58,31 @@ public partial class MouseClickerViewModel : ObservableObject
     private int _delayBeforeClicking;
 
     [ObservableProperty]
-    private bool _isDelayBeforeClickingTextBoxEnabled;
+    private int _delayAfterClicking;
+
+    [ObservableProperty]
+    private double _matchThreshold;
+
+    [ObservableProperty]
+    private bool _isDelayBeforeAndAfterClickingTextBoxEnabled;
+
+    [ObservableProperty]
+    private System.Windows.Point clickCoordinates;
 
     [ObservableProperty]
     private bool _isShowCoordinatesToggleButtonVisible;
+
+    [ObservableProperty]
+    private bool _monitorForChange;
+
+    [ObservableProperty]
+    private int _monitorForChangeInterval;
+
+    [ObservableProperty]
+    private string _startKeybindName;
+
+    [ObservableProperty]
+    private string _stopKeybindName;
 
     #endregion
 
@@ -71,23 +95,10 @@ public partial class MouseClickerViewModel : ObservableObject
     private readonly ILogger _logger;
     private readonly IMessenger _messenger;
     private readonly IDialogHost _dialogHost;
-    private readonly ScreenShotWindowFactory _screenShotWindowFactory;
+    private readonly IScreenShotWindowFactory _screenShotWindowFactory;
     private readonly AutoClickerMenuViewModelFactory _autoClickerMenuViewModelFactory;
+    private readonly KeybindDialog _keybindDialog;
     private bool _isChangingExistingTemplateImage = false;
-
-
-
-
-
-
-
-
-
-
-
-
-    private bool _isUnsavedChanges = false;
-    
 
     #endregion
 
@@ -101,19 +112,24 @@ public partial class MouseClickerViewModel : ObservableObject
     /// <param name="dialogHost"><see cref="IDialogHost"/> implementation to be able to show the material design dialog host.</param>
     /// <param name="snackbarMessageQueue"><see cref="ISnackbarMessageQueue"/> send a pop up message to the user interface.</param>
     /// <param name="screenShotWindowFactory"><see cref="IScreenShotWindowFactory"/> that can create a <see cref="ScreenShotWindow"/> instance.</param>
-    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue, ScreenShotWindowFactory screenShotWindowFactory, 
-        AutoClickerMenuViewModelFactory autoClickerMenuViewModelFactory)
+    /// <param name="keybindDialog"><see cref="KeybindDialog"/> to allow the user to set keybindings.</param>
+    public MouseClickerViewModel(ILogger<MouseClickerViewModel> logger, IMessenger messenger, IDialogHost dialogHost, ISnackbarMessageQueue snackbarMessageQueue, IScreenShotWindowFactory screenShotWindowFactory, 
+        AutoClickerMenuViewModelFactory autoClickerMenuViewModelFactory, KeybindDialog keybindDialog)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dialogHost = dialogHost ?? throw new ArgumentNullException(nameof(dialogHost));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-        _messenger.Register<AutoClickerTemplate>(this, HandleAutoClickerTemplateMessage);
+        _messenger.Register<ScreenShotMessage>(this, HandleScreenShotMessage);
 
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
         _screenShotWindowFactory = screenShotWindowFactory ?? throw new ArgumentNullException(nameof(screenShotWindowFactory));
         _autoClickerMenuViewModelFactory = autoClickerMenuViewModelFactory ?? throw new ArgumentNullException(nameof(autoClickerMenuViewModelFactory));
+        _keybindDialog = keybindDialog ?? throw new ArgumentNullException(nameof(keybindDialog));
 
         AutoClickerSequences = new();
+        StartKeybindName = string.Empty;
+        StopKeybindName = string.Empty;
+        MatchThreshold = 0.0;
 
         ResetSequenceDetails();
         LoadAutoClickerSequences();
@@ -130,21 +146,6 @@ public partial class MouseClickerViewModel : ObservableObject
     [RelayCommand]
     private void OnSequenceSelectedItemChanged()
     {
-        //TODO: Figure out how to save changes 
-        /*if (_isUnsavedChanges)
-        {
-            ConfirmDialog confirmDialog = new($"There are unsaved changes, do you want to save them before selecting another sequence?");
-            object? result = _dialogHost.Show(confirmDialog, DIALOG_IDENTIFIER)
-                .GetAwaiter()
-                .GetResult();
-
-            if (result is bool isSaveChangesCanceled && isSaveChangesCanceled)
-            {
-                CurrentTemplateImageIndex = 0;
-                ShowTemplateImagesForCurrentSequence();
-                return;
-            }
-        }*/
         _templateImagePath = Path.Combine(_sequencePath, @$"{CurrentSequence?.Name}\Images");
         ResetSequenceDetails();
         ShowSequence();
@@ -217,6 +218,9 @@ public partial class MouseClickerViewModel : ObservableObject
         CurrentTemplateImageIndex--;
         CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
         DelayBeforeClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayBeforeClicking ?? 0;
+        MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
+        MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
+        MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
     }
 
     /// <summary>
@@ -228,6 +232,9 @@ public partial class MouseClickerViewModel : ObservableObject
         CurrentTemplateImageIndex++;
         CurrentShowingImage = CurrentSequence?.Templates[CurrentTemplateImageIndex].Image;
         DelayBeforeClicking = CurrentSequence?.Templates[CurrentTemplateImageIndex].DelayBeforeClicking ?? 0;
+        MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
+        MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
+        MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
     }
 
     /// <summary>
@@ -258,7 +265,10 @@ public partial class MouseClickerViewModel : ObservableObject
     [RelayCommand]
     private void OnShowCoordinatesOnImage(bool showCoordinates)
     {
-        var test = "NotImplemented";
+        if (showCoordinates)
+            ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0,0);
+        else
+            ClickCoordinates = new System.Windows.Point(0,0);
     }
 
     /// <summary>
@@ -270,7 +280,9 @@ public partial class MouseClickerViewModel : ObservableObject
         _isChangingExistingTemplateImage = false;
         _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
         ScreenShotWindow screenShotWindow = _screenShotWindowFactory.Create();
+        screenShotWindow.IsSearchingBoundsScreenshot = false;
         screenShotWindow.Show();
+        screenShotWindow.Activate();
     }
 
     /// <summary>
@@ -289,14 +301,49 @@ public partial class MouseClickerViewModel : ObservableObject
             CurrentTemplateImageIndex--;
 
         ShowSequence();
-        NotifyCanExecuteChanged(ChangeTemplateImageCommand);
-        _isUnsavedChanges = true;
+    }
+
+    /// <summary>
+    /// Sets the start keybind for the <see cref="AutoClickerSequence"/>.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSetKeybinds))]
+    private async Task OnSetKeybind(string keybindType)
+    {
+        if (await _dialogHost.Show(_keybindDialog, DIALOG_IDENTIFIER) is bool isSettingStartKeybindCanceled && isSettingStartKeybindCanceled)
+            return;
+
+        string keyName = _keybindDialog.KeybindKey.KeyName;
+        int keyCode = _keybindDialog.KeybindKey.KeyCode;
+        Keybind newKeybind = new(keyName, keyCode);
+
+        if (keybindType.Equals("Start", StringComparison.OrdinalIgnoreCase))
+        {
+            StartKeybindName = keyName;
+            CurrentSequence!.StartKeybind = newKeybind;
+            return;
+        }
+
+        StopKeybindName = keyName;
+        CurrentSequence!.StopKeybind = newKeybind;
+    }
+
+    /// <summary>
+    /// Sets the location of where to find the <see cref="AutoClickerTemplate"/>.
+    /// </summary>
+    [RelayCommand]
+    private void OnSetSearchingRegion()
+    {
+        _messenger.Send(new WindowActionMessage(WindowAction.Minimize));
+        ScreenShotWindow screenShotWindow = _screenShotWindowFactory.Create();
+        screenShotWindow.IsSearchingBoundsScreenshot = true;
+        screenShotWindow.Show();
+        screenShotWindow.Activate();
     }
 
     /// <summary>
     /// Saves the current selected <see cref="AutoClickerSequence"/> to a file.
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanSaveSequenceToFile))]
     private async Task OnSaveSequenceToFile()
     {
         ConfirmDialog confirmDialog = new($"Confirm saving '{CurrentSequence?.Name}' sequence to file?");
@@ -306,20 +353,6 @@ public partial class MouseClickerViewModel : ObservableObject
         await IsCurrentSequenceSavedToFile();
     }
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
     #endregion
 
     #region CommandValidations
@@ -328,7 +361,6 @@ public partial class MouseClickerViewModel : ObservableObject
     /// Enables or disables the "Open Menu" button on the UI based on if <see cref="AutoClickerMenuView"/> is visible or not.
     /// </summary>
     /// <returns><see cref="true"/> if <see cref="AutoClickerMenuView"/> isn't visible, <see cref="false"/> if it is.</returns>
-    //private bool CanOpenAutoClickerMenu() => _autoClickerMenuView != null && !_autoClickerMenuView.IsVisible && AutoClickerSequences.Any();
     private bool CanOpenAutoClickerMenu() => CurrentSequence != null && CurrentSequence.Templates?.Any() == true;
 
     /// <summary>
@@ -346,25 +378,37 @@ public partial class MouseClickerViewModel : ObservableObject
     /// <summary>
     /// Enables or disables the "Next Image" button on the UI based on if it's not on the last image.
     /// </summary>
-    /// <returns>'True' if the index is not on the last image, 'False' if it is.</returns>
-    private bool CanShowNextImageTemplate() => CurrentTemplateImageIndex < CurrentSequence?.Templates?.Count-1;
+    /// <returns><see cref="true"/> if the index is not on the last image, <see cref="false"/> if it is.</returns>
+    private bool CanShowNextImageTemplate() => CurrentTemplateImageIndex < CurrentSequence?.Templates?.Count - 1;
 
     /// <summary>
     /// Enables or disables the "Previous Image" button on the UI based on if it's not on the first image.
     /// </summary>
-    /// <returns>'True' if the index is not on the first image, 'False' if it is.</returns>
+    /// <returns><see cref="true"/> if the index is not on the first image, <see cref="false"/> if it is.</returns>
     private bool CanShowPreviousImageTemplate() => CurrentTemplateImageIndex > 0;
 
     /// <summary>
     /// Enables or disables the "Add Sequence" button on the UI based on if there's a current selected one.
     /// </summary>
-    /// <returns>'True' if there's a current selected sequence, 'False' if it isn't.</returns>
+    /// <returns><see cref="true"/> if there's a current selected sequence, <see cref="false"/> if it isn't.</returns>
     private bool CanDeleteSequence() => !string.IsNullOrEmpty(CurrentSequence?.Name);
+
+    /// <summary>
+    /// Enables or disables the "Set Start/Stop Keybind" buttons on the UI based on if there's a current selected one.
+    /// </summary>
+    /// <returns><see cref="true"/> if there's a current selected sequence, <see cref="false"/> if it isn't.</returns>
+    private bool CanSetKeybinds() => !string.IsNullOrEmpty(CurrentSequence?.Name);
+
+    /// <summary>
+    /// Enables or disables the "Save Sequence to File" button on the UI based on if there's a change in the current sequence.
+    /// </summary>
+    /// <returns><see cref="true"/> if there's a change in the current sequence, <see cref="false"/> if there isn't.</returns>
+    private bool CanSaveSequenceToFile() => IsSequenceChanged();
 
     /// <summary>
     /// Enables or disables the "Change Click Coordinates" button on the UI based on if there's a showing image.
     /// </summary>
-    /// <returns>'True' if there's a showing image, 'False' if there isn't.</returns>
+    /// <returns><see cref="true"/> if there's a showing image, <see cref="false"/> if there isn't.</returns>
     public bool CanChangeClickCoordinateTemplateImage() { IsShowCoordinatesToggleButtonVisible = CurrentShowingImage != null; return CurrentShowingImage != null; }
 
     #endregion
@@ -453,14 +497,21 @@ public partial class MouseClickerViewModel : ObservableObject
             if (CurrentSequence?.Templates == null || !CurrentSequence.Templates.Any())
             {
                 CurrentShowingImage = null;
-                IsDelayBeforeClickingTextBoxEnabled = false;
+                IsDelayBeforeAndAfterClickingTextBoxEnabled = false;
+                NotifyAllTemplateCommands();
                 return;
             }
 
             NumberOfTemplateImages = CurrentSequence.Templates.Count;
             CurrentShowingImage = CurrentSequence.Templates[CurrentTemplateImageIndex].Image;
+            StartKeybindName = CurrentSequence.StartKeybind.KeyName;
+            StopKeybindName = CurrentSequence.StopKeybind.KeyName;
             DelayBeforeClicking = CurrentSequence.Templates[CurrentTemplateImageIndex].DelayBeforeClicking;
-            IsDelayBeforeClickingTextBoxEnabled = true;
+            DelayAfterClicking = CurrentSequence.Templates[CurrentTemplateImageIndex].DelayAfterClicking;
+            MonitorForChange = CurrentSequence.Templates[CurrentTemplateImageIndex].MonitorForChange;
+            MonitorForChangeInterval = CurrentSequence.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval;
+            MatchThreshold = CurrentSequence.Templates[CurrentTemplateImageIndex].MatchThreshold;
+            IsDelayBeforeAndAfterClickingTextBoxEnabled = true;
             NotifyAllTemplateCommands();
         }
         catch (Exception ex)
@@ -479,8 +530,13 @@ public partial class MouseClickerViewModel : ObservableObject
         CurrentTemplateImageIndex = 0;
         NumberOfTemplateImages = 0;
         DelayBeforeClicking = 0;
-        IsDelayBeforeClickingTextBoxEnabled = false;
+        MatchThreshold = 0.0;
+        MonitorForChange = false;
+        MonitorForChangeInterval = 0;
+        IsDelayBeforeAndAfterClickingTextBoxEnabled = false;
         IsShowCoordinatesToggleButtonVisible = false;
+        StartKeybindName = string.Empty;
+        StopKeybindName = string.Empty;
     }
 
     /// <summary>
@@ -493,6 +549,7 @@ public partial class MouseClickerViewModel : ObservableObject
         NotifyCanExecuteChanged(PreviousTemplateImageCommand);
         NotifyCanExecuteChanged(ChangeTemplateImageCommand);
         NotifyCanExecuteChanged(ChangeClickCoordinateTemplateImageCommand);
+        NotifyCanExecuteChanged(SetKeybindCommand);
         NotifyCanExecuteChanged(DeleteTemplateImageCommand);
         NotifyCanExecuteChanged(SaveSequenceToFileCommand);
     }
@@ -501,21 +558,37 @@ public partial class MouseClickerViewModel : ObservableObject
     /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
     /// </summary>
     /// <param name="sender"></param>
-    /// <param name="autoClickerTemplate"><see cref="AutoClickerTemplate"/> with the selection made by the user and where to click on the image.</param>
-    private void HandleAutoClickerTemplateMessage(object sender, AutoClickerTemplate autoClickerTemplate)
+    /// <param name="screenShotMessage"><see cref="ScreenShotMessage"/> with the selection made by the user and where to click on the image and the template.</param>
+    private void HandleScreenShotMessage(object sender, ScreenShotMessage screenShotMessage)
     {
+        if (screenShotMessage.IsSearchingBoundsScreenshot)
+        {
+            CurrentSequence!.TemplateSearchBounds = screenShotMessage.TemplateBounds;
+            return;
+        }
+
         if (_isChangingExistingTemplateImage)
         {
-            CurrentSequence!.Templates[CurrentTemplateImageIndex] = autoClickerTemplate;
+            CurrentSequence!.Templates[CurrentTemplateImageIndex] = screenShotMessage.AutoClickerTemplate;
             CurrentSequence!.Templates[CurrentTemplateImageIndex].ImagePath = Path.Combine(_templateImagePath, $"{CurrentTemplateImageIndex}.jpg");
             ShowSequence();
             return;
         }
 
         // We're adding a new template image after the specified index. We add one to the index to show the correct number on the UI.
-        autoClickerTemplate.ImagePath = Path.Combine(_templateImagePath, $"{CurrentSequence?.Templates.Count}.jpg");
-        CurrentSequence!.Templates.Insert(CurrentSequence.Templates.Count, autoClickerTemplate);
+        screenShotMessage.AutoClickerTemplate.ImagePath = Path.Combine(_templateImagePath, $"{CurrentSequence?.Templates.Count}.jpg");
+        CurrentSequence!.Templates.Insert(CurrentSequence.Templates.Count, screenShotMessage.AutoClickerTemplate);
         ShowSequence();
+    }
+
+    /// <summary>
+    /// Handles the message received from the <see cref="ScreenShotSelection"/> view.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="templateBounds"><see cref="Rectangle"/> with the selection made by the user to know the location and size.</param>
+    private void HandleTemplateBoundsMessage(object sender, Rectangle templateBounds)
+    {
+        CurrentSequence!.TemplateSearchBounds = templateBounds;
     }
 
     /// <summary>
@@ -595,27 +668,107 @@ public partial class MouseClickerViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Checks to see if there's a change in the current sequence.
+    /// </summary>
+    /// <returns><see cref="true"/> if the current sequence changed, <see cref="false"/> if it's the same.</returns>
+    private bool IsSequenceChanged()
+    {
+        return true;
+        /*if (CurrentSequence?.Name != _originalCurrentSequence?.Name)
+            return true;
+
+        if (!Equals(CurrentSequence?.StartKeybind, _originalCurrentSequence?.StartKeybind))
+            return true;
+
+        if (!Equals(CurrentSequence?.StopKeybind, _originalCurrentSequence?.StopKeybind))
+            return true;
+
+        if (CurrentSequence?.Templates.Count != _originalCurrentSequence?.Templates.Count)
+            return true;
+
+        for (int i = 0; i < CurrentSequence?.Templates.Count; i++)
+        {
+            var current = CurrentSequence.Templates[i];
+            var original = _originalCurrentSequence?.Templates[i];
+
+            if (current.ImagePath != original?.ImagePath ||
+                !current.ClickCoordinates.Equals(original.ClickCoordinates) ||
+                current.DelayBeforeClicking != original.DelayBeforeClicking ||
+                current.DelayAfterClicking != original.DelayAfterClicking ||
+                current.ResetPosition != original.ResetPosition ||
+                current.MonitorForChange != original.MonitorForChange ||
+                current.MonitorForChangeInterval != original.MonitorForChangeInterval)
+            {
+                return true;
+            }
+        }
+
+        return false;*/
+    }
+
+    #endregion
+
+    #region ViewEventsOverride
+
+    /// <summary>
+    /// Handles when the "MatchThreshold" textbox changes.
+    /// </summary>
+    /// <param name="value">New value.</param>
+    partial void OnMatchThresholdChanged(double value)
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
+
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].MatchThreshold = value;
+    }
+
+    /// <summary>
     /// Handles when the "DelayBeforeClicking" textbox changes.
     /// </summary>
-    /// <param name="e"></param>
+    /// <param name="value">New value.</param>
     partial void OnDelayBeforeClickingChanged(int value)
     {
         if (CurrentSequence?.Templates.Any() != true)
             return;
-        
+
         CurrentSequence!.Templates[CurrentTemplateImageIndex].DelayBeforeClicking = value;
     }
 
+    /// <summary>
+    /// Handles when the "DelayAfterClicking" textbox changes.
+    /// </summary>
+    /// <param name="value">New value.</param>
+    partial void OnDelayAfterClickingChanged(int value)
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
 
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].DelayAfterClicking = value;
+    }
 
+    /// <summary>
+    /// Handles when the "MonitorForChange" checkbox changes.
+    /// </summary>
+    /// <param name="value">New value.</param>
+    partial void OnMonitorForChangeChanged(bool value)
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
 
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].MonitorForChange = value;
+    }
 
+    /// <summary>
+    /// Handles when the "MonitorForChangeInterval" textbox changes.
+    /// </summary>
+    /// <param name="value">New value.</param>
+    partial void OnMonitorForChangeIntervalChanged(int value)
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
 
-
-    //TODO: When we add a new sequence if there are thing unsaved on the previous one we have to tell the user so that he can save the changes
-    //TODO: When saving all changes to files make sure the naming are correct because we could have added templates in between existing ones
-    //  that are already saved to file with their name.
-    //TODO: Fix the screnshot selection to not show the white borders
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval = value;
+    }
 
     #endregion
 

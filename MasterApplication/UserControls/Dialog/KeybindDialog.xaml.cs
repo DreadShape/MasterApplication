@@ -27,7 +27,7 @@ public partial class KeybindDialog : UserControl
         _keyboardService.KeyPressed -= KeyboardServiceOnKeyPressed;
         _keyboardService.KeyPressed += KeyboardServiceOnKeyPressed;
 
-        _keyboardService.StartKeyboardHook();
+        KeyBindTextBlock.Text = string.Empty;
     }
 
     /// <summary>
@@ -56,16 +56,15 @@ public partial class KeybindDialog : UserControl
     /// <param name="e"></param>
     private void UserControl_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        if (!IsVisible && !_keyboardService.IsKeyboardHookAttached())
-            _keyboardService.StopKeyboardHook();
-    }
+        KeyBindTextBlock.Text = string.Empty;
+        KeybindKey = new();
 
-    /// <summary>
-    /// Destructor.
-    /// </summary>
-    ~KeybindDialog()
-    {
-        if (!_keyboardService.IsKeyboardHookAttached())
-            _keyboardService?.StopKeyboardHook();
+        if (IsVisible)
+        {
+            _keyboardService.StartKeyboardHook();
+            return;
+        }
+
+        _keyboardService.StopKeyboardHook();
     }
 }

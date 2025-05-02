@@ -9,7 +9,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="AutoClickerMenuView"
-        Width="350"
+        Width="370"
         Height="400"
         d:DataContext="{d:DesignInstance Type=local:AutoClickerMenuViewModel,
                                          IsDesignTimeCreatable=False}"
@@ -37,9 +37,10 @@
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
-          <RowDefinition Height="Auto" />
           <RowDefinition Height="2" />
+          <RowDefinition Height="Auto" />
           <RowDefinition />
+          <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -48,12 +49,12 @@
           <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <!-- Loops -->
+        <!-- LoopsTextBlock -->
         <TextBlock Grid.Row="0"
                    Grid.Column="0"
                    Margin="10,10,15,5"
                    FontSize="16"
-                   Text="Loops:" />
+                   Text="LOOPS:" />
 
         <TextBlock Grid.Row="0"
                    Grid.Column="1"
@@ -61,12 +62,12 @@
                    FontSize="16"
                    Text="{Binding AutoClickerCurrentSequenceLoops}" />
 
-        <!-- Time -->
+        <!-- TimeTextBlock -->
         <TextBlock Grid.Row="1"
                    Grid.Column="0"
                    Margin="10,5,15,10"
                    FontSize="16"
-                   Text="Time:" />
+                   Text="TIME:" />
 
         <TextBlock Grid.Row="1"
                    Grid.Column="1"
@@ -120,69 +121,111 @@
                      Text="{Binding StopKeybind}" />
         </Grid>
 
-        <!-- UnderlineSeparator -->
+        <!-- UnderlineSeparatorCanvas -->
         <Canvas Grid.Row="2"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
                 Margin="3,0,3,0"
                 Background="{StaticResource PrimaryLightBackgroundColor}" />
 
-        <!-- OptionsSecondGrid -->
-        <Grid Grid.Row="4"
-              Grid.Column="0"
-              Grid.ColumnSpan="3"
-              Margin="0,0,0,0">
+        <!-- StartAutoClickerButton -->
+        <Button Grid.Row="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Margin="5,10,5,0"
+                Command="{Binding StartAutoClickerCommand}"
+                Content="Start AutoClicker"
+                Style="{StaticResource BiggerDarkButtons}" />
 
+        <Grid Grid.Row="4"
+              Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Grid.Column="0"
+              Grid.ColumnSpan="3">
           <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition />
-            <RowDefinition />
-            <RowDefinition />
+            <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
 
           <Grid.ColumnDefinitions>
-            <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition />
           </Grid.ColumnDefinitions>
 
-          <!-- SetStartKeybind -->
-          <Button Grid.Row="0"
-                  Grid.Column="0"
-                  Margin="5,0,5,0"
-                  Command="{Binding SetKeybindCommand}"
-                  CommandParameter="Start"
-                  Content="Start Keybind"
-                  Style="{StaticResource BiggerDarkButtons}" />
-
-          <!-- SetStopKeybind -->
-          <Button Grid.Row="0"
-                  Grid.Column="1"
-                  Margin="5,0,5,0"
-                  Command="{Binding SetKeybindCommand}"
-                  CommandParameter="Stop"
-                  Content="Stop Keybind"
-                  Style="{StaticResource BiggerDarkButtons}" />
-
-          <!-- StartAutoClicker -->
-          <Button Grid.Row="1"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="2"
-                  Margin="5,0,5,0"
-                  Command="{Binding StartAutoClickerCommand}"
-                  Content="Start AutoClicker"
-                  Style="{StaticResource BiggerDarkButtons}" />
-
-          <!-- Status -->
-          <TextBlock Grid.Row="3"
+          <!-- TemplateSearchingTextBlock -->
+          <TextBlock Grid.Row="0"
                      Grid.Column="0"
                      Grid.ColumnSpan="2"
-                     Margin="0,0,0,5"
+                     Margin="0,10,0,0"
                      HorizontalAlignment="Center"
-                     VerticalAlignment="Center"
-                     FontSize="24"
-                     FontWeight="Bold"
-                     Foreground="{Binding AutoClickerStatusForecolor, Converter={StaticResource HexToBrushConverter}}"
-                     Text="{Binding AutoClickerStatus}" />
+                     FontSize="16"
+                     Text="Searching Template" />
+
+          <!-- TemplateImage -->
+          <Image Grid.Row="1"
+                 Grid.Column="0"
+                 Grid.ColumnSpan="2"
+                 Margin="0,10,0,10"
+                 Source="{Binding TemplateImageToSearch, Converter={StaticResource ByteArrayToBitmapImageConverter}}"
+                 Stretch="Uniform" />
+
+          <Grid Grid.Row="2" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <!-- TemplateMatchScoreTextBlock -->
+            <TextBlock Grid.Column="0"
+                       Margin="10,0,10,0"
+                       FontSize="16"
+                       Text="MATCH SCORE:" />
+
+            <TextBlock Grid.Column="1"
+                       Margin="0,0,10,0"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="{Binding TemplateMatchScoreForeColor, Converter={StaticResource HexToBrushConverter}}">
+
+              <Run d:Text="0.30" Text="{Binding TemplateMatchScore}" />
+              <Run Text="/" />
+              <Run d:Text="0.60" Text="{Binding TemplateMatchThreshold}" />
+            </TextBlock>
+          </Grid>
+
+          <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2*" />
+              <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <!-- TemplateRetriesTextBlock -->
+            <TextBlock Grid.Column="0"
+                       HorizontalAlignment="Right"
+                       FontSize="16"
+                       Text="RETRIES:" />
+
+            <TextBlock Grid.Column="1"
+                       Margin="10,0,10,0"
+                       d:Text="10"
+                       FontSize="16"
+                       Text="{Binding TemplateMatchRetries}" />
+          </Grid>
+
         </Grid>
+
+        <!-- StatusTextBlock -->
+        <TextBlock Grid.Row="5"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="3"
+                   Margin="0,10,0,10"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   d:Text="_PLACEHOLDER TEXT"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="{Binding AutoClickerStatusForecolor, Converter={StaticResource HexToBrushConverter}}"
+                   Text="{Binding AutoClickerStatus}" />
       </Grid>
     </Border>
   </materialDesign:DialogHost>

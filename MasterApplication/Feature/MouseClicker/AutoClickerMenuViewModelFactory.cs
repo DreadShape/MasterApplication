@@ -3,6 +3,7 @@
 using MasterApplication.Models;
 using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.MouseClicker;
+using MasterApplication.UserControls.ScreenShot;
 
 using MaterialDesignThemes.Wpf;
 
@@ -18,8 +19,9 @@ public class AutoClickerMenuViewModelFactory : IAutoClickerMenuViewModelFactory
     private readonly IMouseService _mouseService;
     private readonly IKeyboardService _keyboardService;
     private readonly ISnackbarMessageQueue _snackbarMessageQueue;
+    private readonly IScreenShotWindowFactory _screenShotWindowFactory;
 
-    public AutoClickerMenuViewModelFactory(ILogger<AutoClickerMenuViewModel> logger, IMessenger messenger, IDialogHost dialogHost, IMouseService mouseService, IKeyboardService keyboardService, ISnackbarMessageQueue snackbarMessageQueue)
+    public AutoClickerMenuViewModelFactory(ILogger<AutoClickerMenuViewModel> logger, IMessenger messenger, IDialogHost dialogHost, IMouseService mouseService, IKeyboardService keyboardService, ISnackbarMessageQueue snackbarMessageQueue, IScreenShotWindowFactory screenShotWindowFactory)
     {
         _logger = logger;
         _messenger = messenger;
@@ -27,6 +29,7 @@ public class AutoClickerMenuViewModelFactory : IAutoClickerMenuViewModelFactory
         _mouseService = mouseService;
         _keyboardService = keyboardService;
         _snackbarMessageQueue = snackbarMessageQueue;
+        _screenShotWindowFactory = screenShotWindowFactory;
     }
 
     /// <summary>
@@ -36,6 +39,6 @@ public class AutoClickerMenuViewModelFactory : IAutoClickerMenuViewModelFactory
     /// <returns>The <see cref="AutoClickerMenuViewModel"/> created.</returns>
     public AutoClickerMenuViewModel Create(AutoClickerSequence sequence)
     {
-        return new(_logger, _messenger, _dialogHost, _mouseService, _keyboardService, _snackbarMessageQueue, sequence);
+        return new(_logger, _messenger, _dialogHost, _mouseService, _keyboardService, _snackbarMessageQueue, sequence, _screenShotWindowFactory);
     }
 }

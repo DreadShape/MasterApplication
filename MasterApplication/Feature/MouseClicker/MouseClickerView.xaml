@@ -19,22 +19,22 @@
     <Grid>
       <materialDesign:Card Padding="5" Background="{StaticResource PrimaryMidBackgroundColor}">
         <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
-          </Grid.ColumnDefinitions>
-
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />
           </Grid.RowDefinitions>
 
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+
+          <!-- MenuGrid -->
           <Grid Grid.Row="0" Grid.Column="0">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="1.5*" />
               <ColumnDefinition />
               <ColumnDefinition />
-              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition />
             </Grid.ColumnDefinitions>
 
             <!-- SequenceComboBox -->
@@ -57,7 +57,7 @@
                     Margin="10,0,0,0"
                     VerticalAlignment="Center"
                     Command="{Binding AddSequenceCommand}"
-                    Content="Add"
+                    Content="Add Sequence"
                     Style="{StaticResource BiggerLightButtons}" />
 
             <!-- DeleteSequenceButton -->
@@ -65,19 +65,18 @@
                     Margin="10,0,0,0"
                     VerticalAlignment="Center"
                     Command="{Binding DeleteSequenceCommand}"
-                    Content="Delete"
+                    Content="Delete Sequence"
                     Style="{StaticResource BiggerSecondaryLightButtons}" />
 
             <!-- OpenAutoClickerMenuButton -->
             <Button Grid.Column="3"
-                    Width="180"
                     Margin="10,0,0,0"
                     Command="{Binding OpenAutoClickerMenuCommand}"
                     Content="Open Auto Clicker"
                     Style="{StaticResource BiggerLightButtons}" />
           </Grid>
 
-          <!-- TemplateSettingsCard -->
+          <!-- TemplateSettings -->
           <materialDesign:Card Grid.Row="1"
                                Grid.Column="0"
                                Height="Auto"
@@ -90,10 +89,10 @@
               <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
 
               <Grid.ColumnDefinitions>
+                <ColumnDefinition />
                 <ColumnDefinition />
                 <ColumnDefinition />
               </Grid.ColumnDefinitions>
@@ -101,7 +100,7 @@
               <!-- TemplateImages -->
               <Grid Grid.Row="0"
                     Grid.Column="0"
-                    Grid.ColumnSpan="2"
+                    Grid.ColumnSpan="3"
                     Visibility="{Binding NumberOfTemplateImages, Converter={StaticResource IntToVisibilityConverter}}">
 
                 <Grid.RowDefinitions>
@@ -115,12 +114,28 @@
                   <ColumnDefinition />
                 </Grid.ColumnDefinitions>
 
-                <!-- TemplateImage -->
-                <Image Grid.Row="0"
-                       Grid.Column="0"
-                       Grid.ColumnSpan="3"
-                       Source="{Binding CurrentShowingImage, Converter={StaticResource ByteArrayToBitmapImageConverter}}"
-                       Stretch="Uniform" />
+                <Grid Grid.Row="0"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3">
+
+                  <!-- TemplateImage -->
+                  <Image x:Name="TemplateImage"
+                         Loaded="TemplateImage_Loaded"
+                         Source="{Binding CurrentShowingImage, Converter={StaticResource ByteArrayToBitmapImageConverter}}"
+                         Stretch="Uniform" />
+
+                  <!-- CrossOverlay -->
+                  <Canvas x:Name="OverlayCanvas" IsHitTestVisible="False">
+                    <Line x:Name="CrossLine1"
+                          Stroke="Red"
+                          StrokeThickness="2"
+                          Visibility="Collapsed" />
+                    <Line x:Name="CrossLine2"
+                          Stroke="Red"
+                          StrokeThickness="2"
+                          Visibility="Collapsed" />
+                  </Canvas>
+                </Grid>
 
                 <!-- Pagination -->
                 <!-- PreviousTemplateImageButton -->
@@ -165,112 +180,227 @@
                 </Button>
               </Grid>
 
-              <!-- ChangeAndAddTemplateButtons -->
-              <Grid Grid.Row="1" Grid.Column="0">
+              <!-- TemplateButtons -->
+              <Grid Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3">
                 <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
                   <RowDefinition Height="Auto" />
                   <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition />
+                  <ColumnDefinition />
+                  <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <!-- Column1 -->
+                <!-- ChangeTemplateButton -->
+                <Button Grid.Row="0"
+                        Grid.Column="0"
+                        Margin="5,0,5,10"
+                        VerticalAlignment="Center"
+                        Command="{Binding ChangeTemplateImageCommand}"
+                        Content="Change Current Template"
+                        Style="{StaticResource BiggerLightButtons}" />
+
                 <!-- AddTemplateButton -->
                 <Button Grid.Row="1"
-                        Margin="5,0,7,14"
+                        Grid.Column="0"
+                        Margin="5,0,5,10"
                         VerticalAlignment="Center"
                         Command="{Binding AddTemplateImageCommand}"
                         Content="Add New Template"
                         Style="{StaticResource BiggerLightButtons}" />
 
-                <!-- ChangeTemplateButton -->
-                <Button Grid.Row="0"
-                        Margin="5,0,7,12"
-                        VerticalAlignment="Center"
-                        Command="{Binding ChangeTemplateImageCommand}"
-                        Content="Change Current Template"
-                        Style="{StaticResource BiggerLightButtons}" />
-              </Grid>
-
-              <!-- ClickCoordinatesAndDelayButtons -->
-              <Grid Grid.Row="1" Grid.Column="1">
-                <Grid.RowDefinitions>
-                  <RowDefinition Height="Auto" />
-                  <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition />
-                  <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-
-                <!-- ChangeCoordinatesTemplateButton -->
-                <Button Grid.Row="0"
+                <!-- DeleteTemplateButton -->
+                <Button Grid.Row="2"
                         Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        Margin="7,0,5,12"
+                        Margin="5,0,5,5"
+                        Command="{Binding DeleteTemplateImageCommand}"
+                        Content="Delete Current Template"
+                        Style="{StaticResource BiggerSecondaryLightButtons}" />
+
+                <!-- Column2 -->
+                <!-- ChangeClickCoordinatesTemplateButton -->
+                <Button Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="5,0,5,10"
                         VerticalAlignment="Center"
                         Command="{Binding ChangeClickCoordinateTemplateImageCommand}"
                         Content="Change Click Coordinates"
                         Style="{StaticResource BiggerLightButtons}" />
 
-                <!-- DelayBeforeClickingTextBox -->
-                <TextBox Grid.Row="1"
-                         Grid.Column="0"
-                         Margin="7,0,5,12"
-                         VerticalAlignment="Center"
-                         materialDesign:HintAssist.Hint="Clicking Delay"
-                         materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
-                         AcceptsReturn="False"
-                         GotFocus="TextBox_GotFocus"
-                         IsEnabled="{Binding IsDelayBeforeClickingTextBoxEnabled}"
-                         PreviewKeyDown="DelayBeforeClickingTextBox_PreviewKeyDown"
-                         PreviewTextInput="DelayBeforeClickingTextBox_PreviewTextInput"
-                         Style="{StaticResource BiggerFontOutlineTextBox}"
-                         Text="{Binding DelayBeforeClicking, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                <Grid Grid.Row="1" Grid.Column="1">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
 
-                <!-- ShowCoordinatesCheckbox -->
-                <StackPanel Grid.Row="1"
-                            Grid.Column="1"
-                            MouseDown="StackPanel_MouseDown"
-                            Orientation="Vertical"
-                            Visibility="{Binding IsShowCoordinatesToggleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                  <!-- DelayBeforeClickingTextBox -->
+                  <TextBox Grid.Column="0"
+                           Margin="5,0,5,10"
+                           VerticalAlignment="Center"
+                           materialDesign:HintAssist.Hint="Delay Before Clicking (ms)"
+                           materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                           AcceptsReturn="False"
+                           GotFocus="TextBox_GotFocus"
+                           IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                           PreviewKeyDown="TextBox_PreviewKeyDown"
+                           PreviewTextInput="TextBox_PreviewTextInput"
+                           Style="{StaticResource BiggerFontOutlineTextBox}"
+                           Text="{Binding DelayBeforeClicking, UpdateSourceTrigger=PropertyChanged}" />
 
-                  <TextBlock Margin="10,0,10,5"
-                             HorizontalAlignment="Center"
-                             Cursor="Hand"
-                             Text="Show Coordinates" />
+                  <!-- DelayAfterClickingTextBox -->
+                  <TextBox Grid.Column="1"
+                           Margin="5,0,5,10"
+                           VerticalAlignment="Center"
+                           materialDesign:HintAssist.Hint="Delay After Clicking (ms)"
+                           materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                           AcceptsReturn="False"
+                           GotFocus="TextBox_GotFocus"
+                           IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                           PreviewKeyDown="TextBox_PreviewKeyDown"
+                           PreviewTextInput="TextBox_PreviewTextInput"
+                           Style="{StaticResource BiggerFontOutlineTextBox}"
+                           Text="{Binding DelayAfterClicking, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
 
-                  <ToggleButton x:Name="ShowCoordinatesToggleButton"
-                                Command="{Binding ShowCoordinatesOnImageCommand}"
-                                CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
-                                Style="{StaticResource MaterialDesignSwitchToggleButton}" />
-                </StackPanel>
+                <!-- SetStartAndStopKeybindingGrid -->
+                <Grid Grid.Row="2" Grid.Column="1">
+
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+
+                  <!-- StartKeybind -->
+                  <Button Grid.Column="0"
+                          Margin="5,0,5,5"
+                          Command="{Binding SetKeybindCommand}"
+                          CommandParameter="Start"
+                          Style="{StaticResource BiggerLightButtons}">
+                    <TextBlock>
+                      <Run Text="Start Keybind: " />
+                      <Run Text="{Binding StartKeybindName}" />
+                    </TextBlock>
+                  </Button>
+
+                  <!-- StopKeybind -->
+                  <Button Grid.Column="1"
+                          Margin="5,0,5,5"
+                          Command="{Binding SetKeybindCommand}"
+                          CommandParameter="Stop"
+                          Style="{StaticResource BiggerLightButtons}">
+                    <TextBlock>
+                      <Run Text="Stop Keybind: " />
+                      <Run Text="{Binding StopKeybindName}" />
+                    </TextBlock>
+                  </Button>
+                </Grid>
+
+                <!-- Column3 -->
+                <Grid Grid.Row="0" Grid.Column="2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+
+                  <!-- MatchThresholdTextBox -->
+                  <TextBox Grid.Column="0"
+                           Margin="5,0,5,10"
+                           VerticalAlignment="Center"
+                           materialDesign:HintAssist.Hint="Threshold"
+                           materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                           AcceptsReturn="False"
+                           GotFocus="TextBox_GotFocus"
+                           IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                           PreviewKeyDown="TextBox_PreviewKeyDown"
+                           PreviewTextInput="TextBox_PreviewTextInput"
+                           Style="{StaticResource BiggerFontOutlineTextBox}"
+                           Text="{Binding MatchThreshold, UpdateSourceTrigger=PropertyChanged}" />
+
+                  <!-- ShowClickCoordinatesStackPanel -->
+                  <StackPanel Grid.Column="1"
+                              Margin="5,0,5,10"
+                              MouseDown="StackPanel_MouseDown"
+                              Orientation="Vertical"
+                              Visibility="{Binding IsShowCoordinatesToggleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                    <TextBlock Margin="10,0,10,5"
+                               HorizontalAlignment="Center"
+                               Cursor="Hand"
+                               Text="Show Click Coordinates" />
+
+                    <Viewbox Height="30" Stretch="Uniform">
+                      <ToggleButton x:Name="ShowCoordinatesToggleButton"
+                                    Click="ShowCoordinatesToggleButton_Click"
+                                    CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}"
+                                    Style="{StaticResource MaterialDesignSwitchToggleButton}" />
+                    </Viewbox>
+                  </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1" Grid.Column="2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+
+                  <!-- MonitorForChangeCheckBox -->
+                  <CheckBox Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="5,0,0,10"
+                            VerticalAlignment="Center"
+                            IsChecked="{Binding MonitorForChange}"
+                            IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                            Style="{StaticResource BiggerFontCheckBox}">
+                    <TextBlock Margin="0,0,0,0"
+                               FontSize="13"
+                               Text="Monitor for Change" />
+                  </CheckBox>
+
+                  <!-- MonitorForChangeIntervalTextBox -->
+                  <TextBox Grid.Column="1"
+                           Margin="5,0,5,10"
+                           VerticalAlignment="Center"
+                           materialDesign:HintAssist.Hint="Change Interval (ms)"
+                           materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                           AcceptsReturn="False"
+                           GotFocus="TextBox_GotFocus"
+                           IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                           PreviewKeyDown="TextBox_PreviewKeyDown"
+                           PreviewTextInput="TextBox_PreviewTextInput"
+                           Style="{StaticResource BiggerFontOutlineTextBox}"
+                           Text="{Binding MonitorForChangeInterval, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+
+                <Grid Grid.Row="2" Grid.Column="2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+
+                  <!-- ChangeClickCoordinatesTemplateButton -->
+                  <Button Grid.Column="0"
+                          Margin="5,0,5,5"
+                          VerticalAlignment="Center"
+                          Command="{Binding SetSearchingRegionCommand}"
+                          Content="Set Searching Region"
+                          Style="{StaticResource BiggerLightButtons}" />
+
+                  <!-- SaveSequenceToFileButton -->
+                  <Button Grid.Column="1"
+                          Margin="5,0,5,5"
+                          Command="{Binding SaveSequenceToFileCommand}"
+                          Content="Save Sequence to File"
+                          Style="{StaticResource BiggerSecondaryLightButtons}" />
+                </Grid>
+
+
               </Grid>
-
-              <!-- DeleteImageAndSaveChangesToFileButtons -->
-              <Grid Grid.Row="2"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="37*" />
-                  <ColumnDefinition Width="7*" />
-                  <ColumnDefinition Width="30*" />
-                </Grid.ColumnDefinitions>
-
-                <!-- DeleteTemplateButton -->
-                <Button Grid.Column="0"
-                        Margin="5,0,7,0"
-                        Command="{Binding DeleteTemplateImageCommand}"
-                        Content="Delete Current Template"
-                        Style="{StaticResource BiggerSecondaryLightButtons}" />
-
-                <!-- SaveSequenceToFileButton -->
-                <Button Grid.Column="1"
-                        Grid.ColumnSpan="2"
-                        Margin="7,0,5,0"
-                        Command="{Binding SaveSequenceToFileCommand}"
-                        Content="Save Sequence to File"
-                        Style="{StaticResource BiggerLightButtons}" />
-              </Grid>
-
             </Grid>
           </materialDesign:Card>
         </Grid>

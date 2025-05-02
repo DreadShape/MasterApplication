@@ -14,6 +14,7 @@ using MasterApplication.Services.Dialog;
 using MasterApplication.Services.Feature.Md5Hash;
 using MasterApplication.Services.Feature.MouseClicker;
 using MasterApplication.UserControls;
+using MasterApplication.UserControls.Dialog;
 using MasterApplication.UserControls.ScreenShot;
 
 using MaterialDesignThemes.Wpf;
@@ -116,6 +117,9 @@ public partial class App : Application
             services.AddTransient<AutoClickerMenuViewModel>();
             services.AddSingleton<AutoClickerMenuViewModelFactory>();
             services.AddSingleton<IAutoClickerMenuViewModelFactory, AutoClickerMenuViewModelFactory>();
+
+            //Dialog
+            services.AddSingleton<KeybindDialog>();
 
             //ScreenshotWindow
             services.AddSingleton<ScreenShotWindowFactory>();
