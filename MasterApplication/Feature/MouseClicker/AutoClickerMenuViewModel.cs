@@ -37,7 +37,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     public ISnackbarMessageQueue SnackbarMessageQueue { get; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(StartAutoClickerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartAutoClickerSequenceCommand))]
     private AutoClickerStatus _autoClickerStatus = AutoClickerStatus.IDLE;
 
     [ObservableProperty]
@@ -66,6 +66,12 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isDetailsVisible = false;
+
+    [ObservableProperty]
+    private int _mouseClickerLoopInterval;
+
+    [ObservableProperty]
+    private bool _isMouseClickerLoopIntervalEnabled;
 
     #endregion
 
@@ -111,6 +117,9 @@ public partial class AutoClickerMenuViewModel : ObservableObject
         SnackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
         _autoClickerSequence = autoClickerSequence;
 
+        MouseClickerLoopInterval = 0;
+        IsMouseClickerLoopIntervalEnabled = true;
+
         _time = TimeSpan.Zero;
         _timer = new DispatcherTimer
         {
@@ -138,7 +147,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     /// Starts the AutoClicker.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanStartAutoClicker))]
-    private void OnStartAutoClicker()
+    private void OnStartAutoClickerSequence()
     {
         AutoClickerStatus = AutoClickerStatus.READY;
         AutoClickerStatusForecolor = HexColors.Success;
@@ -197,18 +206,28 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     {
         if (vkCode == _autoClickerSequence.StartKeybind.KeyCode)
         {
-            //If the cancellation token is not null it means there's an AutoClicker active.
-            if (_cancellationTokenSource != null)
-                return;
-
             AutoClickerStatus = AutoClickerStatus.RUNNING;
             AutoClickerStatusForecolor = HexColors.Success;
-            _cancellationTokenSource = new();
             TemplateImageToSearch = null;
             TemplateMatchRetries = 0;
             TemplateMatchScore = "0.0";
             TemplateMatchScoreForeColor = HexColors.Default;
             IsDetailsVisible = true;
+            IsMouseClickerLoopIntervalEnabled = false;
+
+            //If the cancellation token is not null it means there's an AutoClicker active.
+            if (_cancellationTokenSource != null)
+                return;
+
+            _cancellationTokenSource = new();
+            //We start the mouse clicker loop at the current mouse position.
+            if (MouseClickerLoopInterval > 0)
+            {
+                IsDetailsVisible = false;
+                
+                StartAutoClickerLoop(_cancellationTokenSource.Token);
+                return;
+            }
 
             StartAutoClicker(_cancellationTokenSource.Token);
             return;
@@ -216,7 +235,10 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
         //KeyCode 27 == Escape key
         if (vkCode == _autoClickerSequence.StopKeybind.KeyCode || vkCode == 27)
+        {
+            IsMouseClickerLoopIntervalEnabled = true;
             StopAutoClicker();
+        }
     }
 
     /// <summary>
@@ -229,37 +251,36 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
         Task.Run(async () =>
         {
-            MouseCoordinate mouseCoordinate;
-
-            while (!token.IsCancellationRequested)
+            try
             {
-                if (token.IsCancellationRequested)
-                    return;
+                MouseCoordinate mouseCoordinate;
 
-                foreach (AutoClickerTemplate step in _autoClickerSequence.Templates)
+                while (!token.IsCancellationRequested)
                 {
-                    try
+                    foreach (AutoClickerTemplate step in _autoClickerSequence.Templates)
                     {
+                        token.ThrowIfCancellationRequested();
+
                         TemplateImageToSearch = step.Image;
                         TemplateMatchThreshold = step.MatchThreshold.ToString("F2");
-                        await Task.Delay(step.DelayBeforeClicking, token);
-                        mouseCoordinate = GetScreenCoordinates(step.ImagePath, step.MatchThreshold, step.ClickCoordinates);
+
+                        mouseCoordinate = GetScreenCoordinates(step.ImagePath, step.MatchThreshold, step.ClickCoordinates, token);
+                        token.ThrowIfCancellationRequested();
+
                         if (mouseCoordinate.X == 0 || mouseCoordinate.Y == 0)
                         {
                             StopAutoClicker();
                             return;
                         }
 
-                        if (token.IsCancellationRequested)
-                            return;
-
                         _mouseService.MoveCursorTo(mouseCoordinate.X, mouseCoordinate.Y);
-                        Image<Gray, byte> monitorForChangeReferenceImage = CaptureAroundMouse();
+                        await Task.Delay(step.DelayBeforeClicking, token);
+                        var monitorForChangeReferenceImage = CaptureAroundMouse();
+
                         _mouseService.ClickLeftMouseButton();
                         await Task.Delay(step.DelayAfterClicking, token);
 
-                        if (token.IsCancellationRequested)
-                            return;
+                        token.ThrowIfCancellationRequested();
 
                         if (step.MonitorForChange)
                             await MonitorForChange(monitorForChangeReferenceImage, token);
@@ -267,16 +288,48 @@ public partial class AutoClickerMenuViewModel : ObservableObject
                         if (step.ResetPosition)
                         {
                             _mouseService.MoveCursorTo(_autoClickerSequence.TemplateSearchBounds.X, _autoClickerSequence.TemplateSearchBounds.Y);
-                            await Task.Delay(100);
+                            await Task.Delay(200, token);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Error trying to find template: {ex}", ex);
-                    }
-                }
 
-                AutoClickerCurrentSequenceLoops++;
+                    AutoClickerCurrentSequenceLoops++;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Token was cancelled successfully. Ending sequence loop.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error during sequence loop: {ex}", ex);
+            }
+        }, token);
+    }
+
+    /// <summary>
+    /// Starts the AutoCliker loop on the current mouse position.
+    /// </summary>
+    /// <param name="token">Token to cancel the loop.</param>
+    public void StartAutoClickerLoop(CancellationToken token)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    token.ThrowIfCancellationRequested();
+                    _mouseService.ClickLeftMouseButton();
+                    await Task.Delay(MouseClickerLoopInterval);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Token was cancelled successfully. Ending auto cliker loop.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error during auto clicker loop: {ex}", ex);
             }
         }, token);
     }
@@ -304,13 +357,15 @@ public partial class AutoClickerMenuViewModel : ObservableObject
     /// <param name="templateToSearch">Name of the template image file to search for.</param>
     /// <param name="templateThreshold">Threshold of the template to find.</param>
     /// <param name="clickOffset">Where to click based on each template.</param>
+    /// <param name="token">Token to cancel the search.</param>
     /// <returns>Coordinates of the lower right corner of the matched area or 0,0 if there was an error finding the template.</returns>
-    private MouseCoordinate GetScreenCoordinates(string templateToSearch, double templateThreshold, System.Windows.Point clickOffset)
+    private MouseCoordinate GetScreenCoordinates(string templateToSearch, double templateThreshold, System.Windows.Point clickOffset, CancellationToken token)
     {
         for (int attempt = 0; attempt <= 10; attempt++)
         {
             try
             {
+                token.ThrowIfCancellationRequested();
                 using Image<Gray, byte> sourceImage = Utils.CaptureScreen(_autoClickerSequence.TemplateSearchBounds.X, _autoClickerSequence.TemplateSearchBounds.Y, _autoClickerSequence.TemplateSearchBounds.Width, _autoClickerSequence.TemplateSearchBounds.Height);
                 using Image<Gray, byte> templateImage = new Image<Gray, byte>(templateToSearch);
                 //using Image<Gray, byte> sourceImage = new Image<Gray, byte>("C:\\Users\\grati\\OneDrive\\Desktop\\test.png");
@@ -371,7 +426,7 @@ public partial class AutoClickerMenuViewModel : ObservableObject
 
                 TemplateMatchScoreForeColor = HexColors.Error;
                 _logger?.LogWarning("Attempt {attempt}: Match below threshold ({value}/{threshold})", attempt, maxValue.ToString("F2"), templateThreshold);
-                Thread.Sleep(200);
+                Thread.Sleep(300);
             }
             catch (Exception ex)
             {

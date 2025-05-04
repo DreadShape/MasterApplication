@@ -83,6 +83,9 @@ public partial class MouseClickerViewModel : ObservableObject
     private int _monitorForChangeInterval;
 
     [ObservableProperty]
+    private bool _resetPosition;
+
+    [ObservableProperty]
     private string _startKeybindName;
 
     [ObservableProperty]
@@ -233,6 +236,7 @@ public partial class MouseClickerViewModel : ObservableObject
         MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
         MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
         MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
+        ResetPosition = CurrentSequence?.Templates[CurrentTemplateImageIndex].ResetPosition ?? false;
         ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0,0);
         ClickCoordinatesChanged?.Invoke(this, EventArgs.Empty);
 
@@ -251,6 +255,7 @@ public partial class MouseClickerViewModel : ObservableObject
         MatchThreshold = CurrentSequence?.Templates[CurrentTemplateImageIndex].MatchThreshold ?? 0;
         MonitorForChange = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChange ?? false;
         MonitorForChangeInterval = CurrentSequence?.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval ?? 0;
+        ResetPosition = CurrentSequence?.Templates[CurrentTemplateImageIndex].ResetPosition ?? false;
         ClickCoordinates = CurrentSequence?.Templates[CurrentTemplateImageIndex].ClickCoordinates ?? new System.Windows.Point(0, 0);
         ClickCoordinatesChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -536,6 +541,7 @@ public partial class MouseClickerViewModel : ObservableObject
             DelayAfterClicking = CurrentSequence.Templates[CurrentTemplateImageIndex].DelayAfterClicking;
             MonitorForChange = CurrentSequence.Templates[CurrentTemplateImageIndex].MonitorForChange;
             MonitorForChangeInterval = CurrentSequence.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval;
+            ResetPosition = CurrentSequence.Templates[CurrentTemplateImageIndex].ResetPosition;
             MatchThreshold = CurrentSequence.Templates[CurrentTemplateImageIndex].MatchThreshold;
             IsDelayBeforeAndAfterClickingTextBoxEnabled = true;
             ClickCoordinates = CurrentSequence.Templates[CurrentTemplateImageIndex].ClickCoordinates;
@@ -560,6 +566,7 @@ public partial class MouseClickerViewModel : ObservableObject
         MatchThreshold = 0.0;
         MonitorForChange = false;
         MonitorForChangeInterval = 0;
+        ResetPosition = false;
         IsDelayBeforeAndAfterClickingTextBoxEnabled = false;
         IsShowCoordinatesToggleButtonVisible = false;
         StartKeybindName = string.Empty;
@@ -791,6 +798,18 @@ public partial class MouseClickerViewModel : ObservableObject
             return;
 
         CurrentSequence!.Templates[CurrentTemplateImageIndex].MonitorForChangeInterval = value;
+    }
+
+    /// <summary>
+    /// Handles when the "ResetPosition" checkbox changes.
+    /// </summary>
+    /// <param name="value">New value.</param>
+    partial void OnResetPositionChanged(bool value)
+    {
+        if (CurrentSequence?.Templates.Any() != true)
+            return;
+
+        CurrentSequence!.Templates[CurrentTemplateImageIndex].ResetPosition = value;
     }
 
     #endregion

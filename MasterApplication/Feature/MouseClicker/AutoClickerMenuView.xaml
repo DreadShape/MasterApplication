@@ -9,7 +9,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="AutoClickerMenuView"
-        Width="370"
+        Width="400"
         Height="400"
         d:DataContext="{d:DesignInstance Type=local:AutoClickerMenuViewModel,
                                          IsDesignTimeCreatable=False}"
@@ -128,19 +128,42 @@
                 Margin="3,0,3,0"
                 Background="{StaticResource PrimaryLightBackgroundColor}" />
 
-        <!-- StartAutoClickerButton -->
-        <Button Grid.Row="3"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Margin="5,10,5,0"
-                Command="{Binding StartAutoClickerCommand}"
-                Content="Start AutoClicker"
-                Style="{StaticResource BiggerDarkButtons}" />
-
-        <Grid Grid.Row="4"
-              Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+        <!-- MenuButtonsGrid -->
+        <Grid Grid.Row="3"
               Grid.Column="0"
               Grid.ColumnSpan="3">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+
+          <!-- StartAutoClickerSequenceButton -->
+          <Button Grid.Column="0"
+                  Margin="5,10,3,0"
+                  Command="{Binding StartAutoClickerSequenceCommand}"
+                  Content="Start Auto Clicker"
+                  Style="{StaticResource BiggerDarkButtons}" />
+
+          <!-- MonitorForChangeIntervalTextBox -->
+          <TextBox Grid.Column="2"
+                   Margin="3,10,5,0"
+                   VerticalAlignment="Center"
+                   materialDesign:HintAssist.Hint="Mouse Clicker Interval (ms)"
+                   materialDesign:TextFieldAssist.TextBoxViewMargin="1 0 10 0"
+                   AcceptsReturn="False"
+                   GotFocus="TextBox_GotFocus"
+                   IsEnabled="{Binding IsDelayBeforeAndAfterClickingTextBoxEnabled}"
+                   PreviewKeyDown="TextBox_PreviewKeyDown"
+                   PreviewTextInput="TextBox_PreviewTextInput"
+                   Style="{StaticResource BiggerFontOutlineTextBox}"
+                   Text="{Binding MouseClickerLoopInterval, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
+        <!-- TemplateDetailsGrid -->
+        <Grid Grid.Row="4"
+              Grid.Column="0"
+              Grid.ColumnSpan="3"
+              Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />

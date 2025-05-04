@@ -201,7 +201,7 @@ public partial class MouseClickerView : UserControl
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void TextBox_GotFocus(object sender, System.Windows.RoutedEventArgs e)
+    private void TextBox_GotFocus(object sender, RoutedEventArgs e)
     {
         TextBox? textBox = sender as TextBox;
 
